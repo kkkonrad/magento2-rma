@@ -13,6 +13,7 @@
                 <sender>general</sender>
                 <created_template>kkkonrad_rma_email_rma_created</created_template>
                 <status_changed_template>kkkonrad_rma_email_status_changed</status_changed_template>
+                <label_uploaded_template>kkkonrad_rma_email_label_uploaded</label_uploaded_template>
             </email>
             <automation>
                 <auto_cancel_days>14</auto_cancel_days>

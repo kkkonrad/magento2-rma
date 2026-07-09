@@ -51,6 +51,10 @@
                     <label>Status Changed Email Template</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
                 </field>
+                <field id="label_uploaded_template" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Shipping Label Uploaded Email Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
             </group>
 
             <group id="automation" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">

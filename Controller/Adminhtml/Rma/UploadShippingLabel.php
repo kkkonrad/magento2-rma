@@ -19,7 +19,12 @@ class UploadShippingLabel extends Action
         Context $context,
         private readonly RmaRepositoryInterface $rmaRepository,
         private readonly Filesystem $filesystem,
-        private readonly Random $random
+        private readonly Random $random,
+        private readonly \Magento\Framework\Mail\Template\TransportBuilder $transportBuilder,
+        private readonly \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation,
+        private readonly \Magento\Store\Model\StoreManagerInterface $storeManager,
+        private readonly \Kkkonrad\Rma\Model\Config $config,
+        private readonly \Psr\Log\LoggerInterface $logger
     ) {
         parent::__construct($context);
     }
@@ -86,6 +91,9 @@ class UploadShippingLabel extends Action
             $rma->setShippingLabel($relativePath);
             $this->rmaRepository->save($rma);
 
+            // Send notification email to the customer
+            $this->sendNotificationEmail($rma);
+
             $this->messageManager->addSuccessMessage(__('Shipping label has been uploaded successfully.'));
         } catch (LocalizedException $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
@@ -94,5 +102,39 @@ class UploadShippingLabel extends Action
         }
 
         return $resultRedirect->setPath('*/*/edit', ['rma_id' => $rmaId]);
+    }
+
+    private function sendNotificationEmail(\Kkkonrad\Rma\Api\Data\RmaInterface $rma): void
+    {
+        if (!$this->config->isEnabled($rma->getStoreId())) {
+            return;
+        }
+
+        try {
+            $this->inlineTranslation->suspend();
+
+            $transport = $this->transportBuilder
+                ->setTemplateIdentifier($this->config->getLabelUploadedEmailTemplate($rma->getStoreId()))
+                ->setTemplateOptions([
+                    'area'  => \Magento\Framework\App\Area::AREA_FRONTEND,
+                    'store' => $rma->getStoreId(),
+                ])
+                ->setTemplateVars([
+                    'rma'   => $rma,
+                    'store' => $this->storeManager->getStore($rma->getStoreId()),
+                ])
+                ->setFromByScope($this->config->getEmailSender($rma->getStoreId()))
+                ->addTo($rma->getCustomerEmail(), $rma->getCustomerName())
+                ->getTransport();
+
+            $transport->sendMessage();
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to send RMA shipping label uploaded email: ' . $e->getMessage(), [
+                'rma_id' => $rma->getRmaId(),
+                'exception' => $e
+            ]);
+        } finally {
+            $this->inlineTranslation->resume();
+        }
     }
 }

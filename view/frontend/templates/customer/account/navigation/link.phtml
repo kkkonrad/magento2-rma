@@ -1,0 +1,17 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Html\Link\Current $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$isCurrent = $block->isCurrent();
+?>
+<li class="nav item <?= $isCurrent ? 'active' : '' ?>">
+    <a href="<?= $escaper->escapeUrl($block->getHref()) ?>"
+       class="flex items-center gap-3 px-3 py-2 text-sm rounded-lg transition-colors <?= $isCurrent ? 'bg-primary text-white font-medium' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' ?>">
+        <svg class="w-5 h-5 <?= $isCurrent ? 'text-white' : 'text-gray-400' ?>" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-6a4 4 0 00-4-4H4m0 0l4-4m-4 4l4 4m6 4v6a4 4 0 004 4h8m0 0l-4-4m4 4l-4 4" />
+        </svg>
+        <span><?= $escaper->escapeHtml(__($block->getLabel())) ?></span>
+    </a>
+</li>

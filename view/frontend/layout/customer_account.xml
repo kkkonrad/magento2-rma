@@ -6,6 +6,7 @@
         <referenceBlock name="customer_account_navigation">
             <block class="Magento\Framework\View\Element\Html\Link\Current"
                    name="customer-account-navigation-rma-link"
+                   template="Kkkonrad_Rma::customer/account/navigation/link.phtml"
                    sortOrder="200">
                 <arguments>
                     <argument name="label" xsi:type="string" translate="true">My Returns</argument>

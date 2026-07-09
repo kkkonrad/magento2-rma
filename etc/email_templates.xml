@@ -13,4 +13,10 @@
               type="html"
               module="Kkkonrad_Rma"
               area="frontend"/>
+    <template id="kkkonrad_rma_email_label_uploaded"
+              label="RMA Shipping Label Uploaded"
+              file="rma_label_uploaded.html"
+              type="html"
+              module="Kkkonrad_Rma"
+              area="frontend"/>
 </config>

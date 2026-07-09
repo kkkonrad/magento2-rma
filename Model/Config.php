@@ -15,6 +15,7 @@ class Config
     public const XML_PATH_AUTO_CANCEL_DAYS    = 'kkkonrad_rma/automation/auto_cancel_days';
     public const XML_PATH_EMAIL_CREATED       = 'kkkonrad_rma/email/created_template';
     public const XML_PATH_EMAIL_STATUS_CHANGED = 'kkkonrad_rma/email/status_changed_template';
+    public const XML_PATH_EMAIL_LABEL_UPLOADED = 'kkkonrad_rma/email/label_uploaded_template';
     public const XML_PATH_EMAIL_SENDER        = 'kkkonrad_rma/email/sender';
     public const XML_PATH_ALLOWED_ORDER_STATUSES = 'kkkonrad_rma/general/allowed_order_statuses';
 
@@ -94,6 +95,15 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::XML_PATH_EMAIL_STATUS_CHANGED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    public function getLabelUploadedEmailTemplate(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_EMAIL_LABEL_UPLOADED,
             ScopeInterface::SCOPE_STORE,
             $storeId
         );
