@@ -22,6 +22,8 @@ $uploadUrl       = $block->getUploadUrl();
 <div x-data="initRmaCreate"
      data-save-url="<?= $escaper->escapeHtmlAttr($saveUrl) ?>"
      data-upload-url="<?= $escaper->escapeHtmlAttr($uploadUrl) ?>"
+     data-items-url="<?= $escaper->escapeHtmlAttr($block->getUrl('rma/index/orderItems')) ?>"
+     data-base-url="<?= $escaper->escapeHtmlAttr($block->getBaseUrl()) ?>"
      data-max-file-size="<?= $escaper->escapeHtmlAttr((string)($maxFileSizeMb * 1024 * 1024)) ?>"
      data-allowed-extensions="<?= $escaper->escapeHtmlAttr($allowedExts) ?>"
      data-form-key="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"
@@ -410,6 +412,8 @@ function initRmaCreate() {
             const root = this.$root;
             this.saveUrl       = root.dataset.saveUrl;
             this.uploadUrl     = root.dataset.uploadUrl;
+            this.itemsUrl      = root.dataset.itemsUrl;
+            this.baseUrl       = root.dataset.baseUrl;
             this.maxFileSize   = parseInt(root.dataset.maxFileSize, 10);
             this.allowedExts   = root.dataset.allowedExtensions.split(',').map(e => e.trim().toLowerCase());
             this.formKey       = root.dataset.formKey;
@@ -431,11 +435,18 @@ function initRmaCreate() {
 
         async loadOrderItems() {
             try {
-                const resp = await fetch(`${BASE_URL}rest/V1/orders/${this.selectedOrderId}`, {
-                    headers: { 'Content-Type': 'application/json' }
+                const url = this.itemsUrl + '?order_id=' + encodeURIComponent(this.selectedOrderId)
+                    + '&form_key=' + encodeURIComponent(this.formKey);
+                const resp = await fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 });
-                const order = await resp.json();
-                this.orderItems = (order.items || []).filter(i => !i.parent_item_id);
+                const data = await resp.json();
+                if (data.error) {
+                    this.errorMessage = data.message || 'Failed to load order items.';
+                    this.orderItems = [];
+                } else {
+                    this.orderItems = data.items || [];
+                }
             } catch (e) {
                 this.errorMessage = 'Failed to load order items.';
             } finally {
@@ -603,7 +614,7 @@ function initRmaCreate() {
                     this.successMessage = data.message || 'Return request submitted successfully.';
                     // Redirect to the new RMA view
                     setTimeout(() => {
-                        window.location.href = data.redirect_url || `${BASE_URL}rma/index/view/rma_id/${data.rma_id}`;
+                        window.location.href = data.redirect_url || (this.baseUrl + 'rma/index/view/rma_id/' + data.rma_id);
                     }, 1500);
                 } else {
                     this.errorMessage = data.message || 'An error occurred. Please try again.';

@@ -10,6 +10,7 @@ use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Framework\Exception\LocalizedException;
 
 class AddMessage implements HttpPostActionInterface
@@ -19,7 +20,8 @@ class AddMessage implements HttpPostActionInterface
         private readonly JsonFactory $resultJsonFactory,
         private readonly CustomerSession $customerSession,
         private readonly RmaRepositoryInterface $rmaRepository,
-        private readonly RmaManagementInterface $rmaManagement
+        private readonly RmaManagementInterface $rmaManagement,
+        private readonly FormKeyValidator $formKeyValidator
     ) {
     }
 
@@ -29,6 +31,10 @@ class AddMessage implements HttpPostActionInterface
 
         if (!$this->customerSession->isLoggedIn()) {
             return $result->setData(['success' => false, 'message' => __('Please log in.')]);
+        }
+
+        if (!$this->formKeyValidator->validate($this->request)) {
+            return $result->setData(['success' => false, 'message' => __('Invalid security token. Please refresh and try again.')]);
         }
 
         try {

@@ -85,6 +85,28 @@
             </filterRange>
         </filters>
         <massaction name="listing_massaction">
+            <action name="approve">
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure you want to approve selected RMAs?</message>
+                        <title translate="true">Approve selected RMAs</title>
+                    </confirm>
+                    <url path="*/*/massApprove"/>
+                    <type>approve</type>
+                    <label translate="true">Approve</label>
+                </settings>
+            </action>
+            <action name="cancel">
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure you want to cancel selected RMAs?</message>
+                        <title translate="true">Cancel selected RMAs</title>
+                    </confirm>
+                    <url path="*/*/massCancel"/>
+                    <type>cancel</type>
+                    <label translate="true">Cancel</label>
+                </settings>
+            </action>
             <action name="delete">
                 <settings>
                     <confirm>

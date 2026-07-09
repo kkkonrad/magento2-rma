@@ -36,6 +36,8 @@ class ListRma extends Template
             return [];
         }
 
+        $page = max(1, (int) $this->getRequest()->getParam('p', 1));
+
         $sortOrder = $this->sortOrderBuilder
             ->setField('created_at')
             ->setDescendingDirection()
@@ -43,8 +45,8 @@ class ListRma extends Template
 
         $searchCriteria = $this->searchCriteriaBuilder
             ->addSortOrder($sortOrder)
-            ->setCurrentPage(1)
-            ->setPageSize(20)
+            ->setCurrentPage($page)
+            ->setPageSize(10)
             ->create();
 
         $results = $this->rmaRepository->getListForCustomer($customerId, $searchCriteria);

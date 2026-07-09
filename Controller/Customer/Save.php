@@ -13,9 +13,11 @@ use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Filesystem;
 use Magento\Framework\Math\Random;
+use Magento\Framework\UrlInterface;
 use Psr\Log\LoggerInterface;
 
 class Save implements HttpPostActionInterface
@@ -31,7 +33,9 @@ class Save implements HttpPostActionInterface
         private readonly Config $config,
         private readonly Filesystem $filesystem,
         private readonly Random $random,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly FormKeyValidator $formKeyValidator,
+        private readonly UrlInterface $url
     ) {
     }
 
@@ -41,6 +45,10 @@ class Save implements HttpPostActionInterface
 
         if (!$this->customerSession->isLoggedIn()) {
             return $result->setData(['success' => false, 'message' => __('Please log in to submit a return request.')]);
+        }
+
+        if (!$this->formKeyValidator->validate($this->request)) {
+            return $result->setData(['success' => false, 'message' => __('Invalid security token. Please refresh and try again.')]);
         }
 
         try {
@@ -71,13 +79,22 @@ class Save implements HttpPostActionInterface
 
             $rma = $this->rmaManagement->createFromOrder($orderId, $customerId, $resolutionType, $items, $comment);
 
+            // Auto-advance to pending_review so support team is notified immediately
+            $this->rmaManagement->changeStatus(
+                $rma->getRmaId(),
+                'pending_review',
+                null,
+                'customer',
+                $customerId
+            );
+
             // Handle file uploads
             $this->processAttachments($rma->getRmaId());
 
             return $result->setData([
                 'success'      => true,
                 'rma_id'       => $rma->getRmaId(),
-                'redirect_url' => sprintf('%srma/index/view/rma_id/%d', '{{base_url}}', $rma->getRmaId()),
+                'redirect_url' => $this->url->getUrl('rma/index/view', ['rma_id' => $rma->getRmaId()]),
                 'message'      => (string) __('Your return request has been submitted successfully.'),
             ]);
 
@@ -108,7 +125,24 @@ class Save implements HttpPostActionInterface
             $allowed     = $this->config->getAllowedExtensions();
             $maxSize     = $this->config->getMaxFileSizeMb() * 1024 * 1024;
 
-            if (!in_array($ext, $allowed, true) || $files['size'][$index] > $maxSize) {
+            // Server-side MIME type verification using finfo
+            $finfo    = new \finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($files['tmp_name'][$index]) ?: 'application/octet-stream';
+
+            $allowedMimes = [
+                'jpg'  => 'image/jpeg', 'jpeg' => 'image/jpeg',
+                'png'  => 'image/png',  'gif'  => 'image/gif',
+                'webp' => 'image/webp', 'pdf'  => 'application/pdf',
+                'doc'  => 'application/msword',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'zip'  => 'application/zip',
+            ];
+
+            $expectedMime = $allowedMimes[$ext] ?? null;
+            if (!in_array($ext, $allowed, true)
+                || $files['size'][$index] > $maxSize
+                || ($expectedMime !== null && $mimeType !== $expectedMime)
+            ) {
                 continue;
             }
 
