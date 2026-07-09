@@ -16,6 +16,7 @@ class Config
     public const XML_PATH_EMAIL_CREATED       = 'kkkonrad_rma/email/created_template';
     public const XML_PATH_EMAIL_STATUS_CHANGED = 'kkkonrad_rma/email/status_changed_template';
     public const XML_PATH_EMAIL_SENDER        = 'kkkonrad_rma/email/sender';
+    public const XML_PATH_ALLOWED_ORDER_STATUSES = 'kkkonrad_rma/general/allowed_order_statuses';
 
     public function __construct(
         private readonly ScopeConfigInterface $scopeConfig
@@ -96,5 +97,21 @@ class Config
             ScopeInterface::SCOPE_STORE,
             $storeId
         );
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getAllowedOrderStatuses(?int $storeId = null): array
+    {
+        $value = $this->scopeConfig->getValue(
+            self::XML_PATH_ALLOWED_ORDER_STATUSES,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+        if (!$value) {
+            return ['complete'];
+        }
+        return array_filter(array_map('trim', explode(',', (string) $value)));
     }
 }

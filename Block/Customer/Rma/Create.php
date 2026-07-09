@@ -43,9 +43,11 @@ class Create extends Template
             return [];
         }
 
+        $allowedStatuses = $this->config->getAllowedOrderStatuses();
+
         $searchCriteria = $this->searchCriteriaBuilder
             ->addFilter('customer_id', $customerId)
-            ->addFilter('status', 'complete')
+            ->addFilter('status', $allowedStatuses, 'in')
             ->create();
 
         $orders = $this->orderRepository->getList($searchCriteria);

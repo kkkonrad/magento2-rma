@@ -250,8 +250,9 @@ class RmaManagement implements RmaManagementInterface
             return false;
         }
 
-        // Order status must be 'complete'
-        if ($order->getStatus() !== 'complete') {
+        // Order status check based on configuration
+        $allowedStatuses = $this->config->getAllowedOrderStatuses((int) $order->getStoreId());
+        if (!in_array($order->getStatus(), $allowedStatuses, true)) {
             return false;
         }
 

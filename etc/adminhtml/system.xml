@@ -30,6 +30,11 @@
                     <label>Allowed File Extensions</label>
                     <comment>Comma-separated list, e.g.: jpg,jpeg,png,gif,pdf</comment>
                 </field>
+                <field id="allowed_order_statuses" translate="label comment" type="multiselect" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allowed Order Statuses for Return</label>
+                    <comment>Select order statuses for which customer can request a return. Leave blank to allow complete orders only.</comment>
+                    <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
+                </field>
             </group>
 
             <group id="email" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
