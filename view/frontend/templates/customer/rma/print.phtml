@@ -1,0 +1,158 @@
+<?php
+declare(strict_types=1);
+
+use Kkkonrad\Rma\Block\Customer\Rma\PrintSlip;
+use Magento\Framework\Escaper;
+
+/** @var PrintSlip $block */
+/** @var Escaper $escaper */
+
+$rma = $block->getRma();
+if (!$rma) {
+    return;
+}
+
+$items = $block->getItems();
+$reasons = $block->getReasons();
+$conditions = $block->getConditions();
+?>
+<div class="print-slip-container" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333333; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.5;">
+    
+    <!-- Top Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333333; padding-bottom: 15px; margin-bottom: 25px;">
+        <div>
+            <h1 style="font-size: 28px; font-weight: bold; margin: 0; text-transform: uppercase; letter-spacing: 1px; color: #111111;">
+                <?= $escaper->escapeHtml(__('Return Slip')) ?>
+            </h1>
+            <p style="margin: 5px 0 0 0; font-size: 14px; color: #666666;">
+                <?= $escaper->escapeHtml(__('Please place this slip inside your return package.')) ?>
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 18px; font-weight: bold; color: #111111;">
+                <?= $escaper->escapeHtml(__('RMA #')) ?><?= $escaper->escapeHtml($rma->getIncrementId()) ?>
+            </div>
+            <div style="font-size: 13px; color: #666666; margin-top: 4px;">
+                <?= $escaper->escapeHtml(__('Date:')) ?> <?= $escaper->escapeHtml(date('d.m.Y H:i', strtotime($rma->getCreatedAt()))) ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- RMA Metadata & Customer Details -->
+    <div style="display: flex; gap: 40px; margin-bottom: 30px;">
+        <div style="flex: 1; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; background-color: #fafafa;">
+            <h3 style="font-size: 14px; font-weight: bold; text-transform: uppercase; margin: 0 0 10px 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; color: #111111;">
+                <?= $escaper->escapeHtml(__('Customer Details')) ?>
+            </h3>
+            <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 4px 0; color: #666666; width: 100px;"><?= $escaper->escapeHtml(__('Name:')) ?></td>
+                    <td style="padding: 4px 0; font-weight: bold; color: #333333;"><?= $escaper->escapeHtml($rma->getCustomerName()) ?></td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 0; color: #666666;"><?= $escaper->escapeHtml(__('Email:')) ?></td>
+                    <td style="padding: 4px 0; color: #333333;"><?= $escaper->escapeHtml($rma->getCustomerEmail()) ?></td>
+                </tr>
+            </table>
+        </div>
+
+        <div style="flex: 1; border: 1px solid #e5e7eb; border-radius: 6px; padding: 15px; background-color: #fafafa;">
+            <h3 style="font-size: 14px; font-weight: bold; text-transform: uppercase; margin: 0 0 10px 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; color: #111111;">
+                <?= $escaper->escapeHtml(__('Order Details')) ?>
+            </h3>
+            <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 4px 0; color: #666666; width: 120px;"><?= $escaper->escapeHtml(__('Order ID:')) ?></td>
+                    <td style="padding: 4px 0; font-weight: bold; color: #333333;"><?= $escaper->escapeHtml($rma->getOrderIncrementId()) ?></td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 0; color: #666666;"><?= $escaper->escapeHtml(__('Resolution:')) ?></td>
+                    <td style="padding: 4px 0; font-weight: bold; text-transform: capitalize; color: #333333;">
+                        <?= $escaper->escapeHtml($rma->getResolutionType() ?? '-') ?>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Items List Table -->
+    <div style="margin-bottom: 35px;">
+        <h3 style="font-size: 16px; font-weight: bold; margin: 0 0 12px 0; color: #111111; text-transform: uppercase; letter-spacing: 0.5px;">
+            <?= $escaper->escapeHtml(__('Returned Items')) ?>
+        </h3>
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+            <thead>
+                <tr style="background-color: #f3f4f6; border-top: 1px solid #d1d5db; border-bottom: 2px solid #d1d5db;">
+                    <th style="padding: 10px; font-weight: bold; color: #111111;"><?= $escaper->escapeHtml(__('SKU')) ?></th>
+                    <th style="padding: 10px; font-weight: bold; color: #111111;"><?= $escaper->escapeHtml(__('Product Name')) ?></th>
+                    <th style="padding: 10px; font-weight: bold; color: #111111; text-align: center;"><?= $escaper->escapeHtml(__('Qty')) ?></th>
+                    <th style="padding: 10px; font-weight: bold; color: #111111;"><?= $escaper->escapeHtml(__('Reason')) ?></th>
+                    <th style="padding: 10px; font-weight: bold; color: #111111;"><?= $escaper->escapeHtml(__('Condition')) ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($items as $item): ?>
+                    <tr style="border-bottom: 1px solid #e5e7eb;">
+                        <td style="padding: 10px; font-weight: bold; font-family: monospace; font-size: 12px; color: #111111;">
+                            <?= $escaper->escapeHtml($item->getProductSku()) ?>
+                        </td>
+                        <td style="padding: 10px; color: #333333;"><?= $escaper->escapeHtml($item->getProductName()) ?></td>
+                        <td style="padding: 10px; text-align: center; font-weight: bold; color: #333333;"><?= (float)$item->getQty() ?></td>
+                        <td style="padding: 10px; color: #555555;"><?= $escaper->escapeHtml($reasons[$item->getReasonId()] ?? __('N/A')) ?></td>
+                        <td style="padding: 10px; color: #555555;"><?= $escaper->escapeHtml($conditions[$item->getConditionId()] ?? __('N/A')) ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Instructions Block -->
+    <div style="border: 1px solid #d1d5db; border-radius: 6px; padding: 20px; margin-bottom: 40px; background-color: #fafafa;">
+        <h3 style="font-size: 15px; font-weight: bold; text-transform: uppercase; margin: 0 0 12px 0; color: #111111; display: flex; align-items: center; gap: 8px;">
+            <span>📋</span> <?= $escaper->escapeHtml(__('Return Instructions')) ?>
+        </h3>
+        <ol style="margin: 0; padding-left: 20px; font-size: 13px; color: #4b5563; line-height: 1.6;">
+            <li style="margin-bottom: 8px;">
+                <?= $escaper->escapeHtml(__('Pack the items carefully in their original packaging, ensuring all tags, parts, and manuals are included.')) ?>
+            </li>
+            <li style="margin-bottom: 8px;">
+                <?= $escaper->escapeHtml(__('Place this printed Return Slip inside the parcel so our warehouse team can identify and process your return quickly.')) ?>
+            </li>
+            <li style="margin-bottom: 8px;">
+                <?= $escaper->escapeHtml(__('Seal the parcel securely and paste the Return Address Label (shown below) or your prepaid shipping label on the outside.')) ?>
+            </li>
+            <li>
+                <?= $escaper->escapeHtml(__('Ship the package through your preferred courier. We recommend using a trackable shipping method.')) ?>
+            </li>
+        </ol>
+    </div>
+
+    <!-- Return Address Label Box (Dashed box for cutting) -->
+    <div style="border: 2px dashed #9ca3af; border-radius: 8px; padding: 25px; max-width: 380px; margin: 0 auto; text-align: center; background-color: #ffffff;">
+        <div style="font-size: 10px; font-weight: bold; text-transform: uppercase; color: #9ca3af; margin-bottom: 15px; letter-spacing: 1px;">
+            ✂️ <?= $escaper->escapeHtml(__('Cut along the dashed line and stick to the package')) ?> ✂️
+        </div>
+        <div style="border: 1px solid #e5e7eb; padding: 15px; text-align: left; background-color: #fcfcfc;">
+            <div style="font-size: 11px; font-weight: bold; color: #6b7280; text-transform: uppercase; margin-bottom: 6px;">
+                <?= $escaper->escapeHtml(__('Return To:')) ?>
+            </div>
+            <div style="font-size: 14px; font-weight: bold; color: #111111; margin-bottom: 4px;">
+                <?= $escaper->escapeHtml(__('Warehouse Returns Dept.')) ?>
+            </div>
+            <div style="font-size: 13px; color: #333333; line-height: 1.4;">
+                <?= $escaper->escapeHtml(__('RMA ID: ')) ?><strong>#<?= $escaper->escapeHtml($rma->getIncrementId()) ?></strong><br/>
+                <?= $escaper->escapeHtml(__('ul. Magazynowa 14A')) ?><br/>
+                <?= $escaper->escapeHtml(__('00-001 Warszawa, Polska')) ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        // Automatically open the print dialog
+        setTimeout(() => {
+            window.print();
+        }, 500);
+    });
+</script>

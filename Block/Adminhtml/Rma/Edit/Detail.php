@@ -167,9 +167,17 @@ class Detail extends Template
         return $this->getUrl('kkkonrad_rma/rma/cancel');
     }
 
+    public function getUploadShippingLabelUrl(): string
+    {
+        return $this->getUrl('kkkonrad_rma/rma/uploadShippingLabel');
+    }
+
     public function getMediaUrl(string $filePath): string
     {
-        return $this->_storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA)
-            . 'kkkonrad/rma/' . ltrim($filePath, '/');
+        $baseMediaUrl = $this->_storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+        if (str_starts_with($filePath, 'kkkonrad/rma/')) {
+            return $baseMediaUrl . $filePath;
+        }
+        return $baseMediaUrl . 'kkkonrad/rma/' . ltrim($filePath, '/');
     }
 }

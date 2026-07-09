@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Kkkonrad\Rma\Controller\Customer;
+namespace Kkkonrad\Rma\Controller\Index;
 
 use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Magento\Customer\Model\Session as CustomerSession;

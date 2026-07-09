@@ -158,4 +158,14 @@ class Rma extends AbstractModel implements RmaInterface
     {
         return $this->setData(self::RESOLVED_AT, $resolvedAt);
     }
+
+    public function getShippingLabel(): ?string
+    {
+        return $this->getData(self::SHIPPING_LABEL);
+    }
+
+    public function setShippingLabel(?string $shippingLabel): self
+    {
+        return $this->setData(self::SHIPPING_LABEL, $shippingLabel);
+    }
 }

@@ -11,6 +11,16 @@ type Query {
     Returns a single RMA by ID. Customer can only access their own RMAs.
     """
     customerRma(rma_id: Int!): RmaDetails @resolver(class: "Kkkonrad\\Rma\\Model\\Resolver\\CustomerRma") @doc(description: "Returns a single RMA for the current customer")
+
+    """
+    Returns active return reasons dictionary.
+    """
+    rmaReasons: [RmaReasonOption!]! @resolver(class: "Kkkonrad\\Rma\\Model\\Resolver\\RmaReasons") @doc(description: "Returns active return reasons dictionary")
+
+    """
+    Returns active item conditions dictionary.
+    """
+    rmaConditions: [RmaConditionOption!]! @resolver(class: "Kkkonrad\\Rma\\Model\\Resolver\\RmaConditions") @doc(description: "Returns active item conditions dictionary")
 }
 
 type CustomerRmaOutput @doc(description: "Paginated list of customer RMAs") {
@@ -45,6 +55,7 @@ type RmaDetails @doc(description: "Full RMA detail including items and messages"
     messages: [RmaMessage]! @doc(description: "Thread messages")
     status_history: [RmaStatusHistory]! @doc(description: "Status change log")
     attachments: [RmaAttachment]! @doc(description: "Uploaded files")
+    shipping_label_url: String @doc(description: "Public download URL for return shipping label PDF uploaded by admin")
 }
 
 type RmaItem @doc(description: "Single item in an RMA request") {
@@ -79,4 +90,48 @@ type RmaAttachment @doc(description: "File attached to an RMA") {
     file_size: Int! @doc(description: "File size in bytes")
     mime_type: String! @doc(description: "MIME type")
     url: String! @doc(description: "Public download URL")
+}
+
+type RmaReasonOption @doc(description: "Return reason option") {
+    reason_id: Int! @doc(description: "Reason option ID")
+    label: String! @doc(description: "Display label")
+    code: String! @doc(description: "Unique string code")
+}
+
+type RmaConditionOption @doc(description: "Item condition option") {
+    condition_id: Int! @doc(description: "Condition option ID")
+    label: String! @doc(description: "Display label")
+    code: String! @doc(description: "Unique string code")
+}
+
+type Mutation {
+    createCustomerRma(input: CreateCustomerRmaInput!): CreateCustomerRmaOutput @resolver(class: "Kkkonrad\\Rma\\Model\\Resolver\\CreateCustomerRma") @doc(description: "Creates a new customer RMA request")
+    addCustomerRmaMessage(input: AddCustomerRmaMessageInput!): AddCustomerRmaMessageOutput @resolver(class: "Kkkonrad\\Rma\\Model\\Resolver\\AddCustomerRmaMessage") @doc(description: "Adds a new message to the RMA conversation thread")
+}
+
+input CreateCustomerRmaInput @doc(description: "Input fields for creating a customer RMA request") {
+    order_id: Int! @doc(description: "Order entity ID")
+    resolution_type: String! @doc(description: "Desired resolution (refund, exchange, repair, voucher)")
+    comment: String @doc(description: "Optional customer comment")
+    items: [CreateCustomerRmaItemInput!]! @doc(description: "Items to return")
+}
+
+input CreateCustomerRmaItemInput @doc(description: "Input fields for item in customer RMA request") {
+    order_item_id: Int! @doc(description: "Order item entity ID")
+    qty: Float! @doc(description: "Quantity to return")
+    reason_id: Int @doc(description: "Reason ID from rmaReasons")
+    condition_id: Int @doc(description: "Condition ID from rmaConditions")
+}
+
+type CreateCustomerRmaOutput @doc(description: "Output after creating customer RMA") {
+    rma: RmaDetails! @doc(description: "The created RMA details")
+}
+
+input AddCustomerRmaMessageInput @doc(description: "Input fields for adding a message to RMA thread") {
+    rma_id: Int! @doc(description: "RMA entity ID")
+    message: String! @doc(description: "Message content")
+}
+
+type AddCustomerRmaMessageOutput @doc(description: "Output after adding a message to RMA thread") {
+    message: RmaMessage! @doc(description: "The created message details")
 }

@@ -1,18 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace Kkkonrad\Rma\Controller\Customer;
+namespace Kkkonrad\Rma\Controller\Index;
 
+use Kkkonrad\Rma\Block\Customer\Rma\ListRma;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\View\Result\PageFactory;
 
-/**
- * GET controller — renders the "Create Return Request" form page.
- * The actual form submission is handled by Customer\Save (POST).
- */
-class Create implements HttpGetActionInterface
+class Index implements HttpGetActionInterface
 {
     public function __construct(
         private readonly PageFactory $resultPageFactory,
@@ -24,7 +21,7 @@ class Create implements HttpGetActionInterface
     public function execute(): \Magento\Framework\View\Result\Page
     {
         $resultPage = $this->resultPageFactory->create();
-        $resultPage->getConfig()->getTitle()->set(__('New Return Request'));
+        $resultPage->getConfig()->getTitle()->set(__('My Returns (RMA)'));
 
         return $resultPage;
     }

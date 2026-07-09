@@ -139,6 +139,36 @@ $statusValidator = $block->getStatusValidator();
                     </table>
                 </div>
             </div>
+
+            <div class="admin__page-section-item">
+                <div class="admin__page-section-item-title">
+                    <span class="title"><?= $escaper->escapeHtml(__('Shipping Label')) ?></span>
+                </div>
+                <div class="admin__page-section-item-content">
+                    <?php if ($rma->getShippingLabel()): ?>
+                        <div style="margin-bottom: 12px; font-size: 13px;">
+                            <strong><?= $escaper->escapeHtml(__('Current Label:')) ?> </strong>
+                            <a href="<?= $escaper->escapeUrl($block->getMediaUrl($rma->getShippingLabel())) ?>" target="_blank" style="text-decoration: underline; color: #007bdb; font-weight: bold;">
+                                <?= $escaper->escapeHtml(__('Download PDF Label')) ?>
+                            </a>
+                        </div>
+                        <button type="button" onclick="confirmAction('<?= $escaper->escapeUrl($block->getUploadShippingLabelUrl() . '?rma_id=' . $rma->getRmaId() . '&delete=1') ?>', '<?= $escaper->escapeHtmlAttr(__('Are you sure you want to delete this shipping label?')) ?>')" class="action-default error">
+                            <span><?= $escaper->escapeHtml(__('Delete Label')) ?></span>
+                        </button>
+                    <?php else: ?>
+                        <form action="<?= $escaper->escapeUrl($block->getUploadShippingLabelUrl()) ?>" method="post" enctype="multipart/form-data">
+                            <input type="hidden" name="rma_id" value="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"/>
+                            <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+                            <div style="margin-bottom: 12px;">
+                                <input type="file" name="shipping_label" accept="application/pdf" required style="width: 100%; border: 1px solid #d1d5db; padding: 4px; border-radius: 3px;" />
+                            </div>
+                            <button type="submit" class="action-default primary">
+                                <span><?= $escaper->escapeHtml(__('Upload PDF Label')) ?></span>
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                </div>
+            </div>
         </div>
     </div>
 

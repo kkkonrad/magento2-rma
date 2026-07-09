@@ -1,19 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace Kkkonrad\Rma\Controller\Customer;
+namespace Kkkonrad\Rma\Controller\Index;
 
-use Kkkonrad\Rma\Block\Customer\Rma\ListRma;
-use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\View\Result\PageFactory;
 
-class Index implements HttpGetActionInterface
+class View implements HttpGetActionInterface
 {
     public function __construct(
         private readonly PageFactory $resultPageFactory,
-        private readonly CustomerSession $customerSession,
         private readonly RequestInterface $request
     ) {
     }
@@ -21,7 +18,7 @@ class Index implements HttpGetActionInterface
     public function execute(): \Magento\Framework\View\Result\Page
     {
         $resultPage = $this->resultPageFactory->create();
-        $resultPage->getConfig()->getTitle()->set(__('My Returns (RMA)'));
+        $resultPage->getConfig()->getTitle()->set(__('Return Request Details'));
 
         return $resultPage;
     }

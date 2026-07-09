@@ -23,6 +23,7 @@ interface RmaInterface
     public const CREATED_AT      = 'created_at';
     public const UPDATED_AT      = 'updated_at';
     public const RESOLVED_AT     = 'resolved_at';
+    public const SHIPPING_LABEL  = 'shipping_label';
 
     // Status constants
     public const STATUS_NEW             = 'new';
@@ -82,4 +83,7 @@ interface RmaInterface
 
     public function getResolvedAt(): ?string;
     public function setResolvedAt(?string $resolvedAt): self;
+
+    public function getShippingLabel(): ?string;
+    public function setShippingLabel(?string $shippingLabel): self;
 }

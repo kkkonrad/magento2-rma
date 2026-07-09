@@ -142,6 +142,7 @@ class CustomerRma implements ResolverInterface
             'messages'           => $messages,
             'status_history'     => $history,
             'attachments'        => $attachments,
+            'shipping_label_url' => $rma->getShippingLabel() ? $baseMediaUrl . $rma->getShippingLabel() : null,
         ];
     }
 }

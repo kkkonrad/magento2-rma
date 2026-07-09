@@ -2,6 +2,8 @@ parameters:
     level: 2
     paths:
         - .
+    scanDirectories:
+        - ../../../../generated/code/Kkkonrad/Rma
     excludePaths:
         analyse:
             - Test/*
