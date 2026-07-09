@@ -1,0 +1,11 @@
+<?php
+/** @var \Kkkonrad\Rma\Block\Adminhtml\Order\CreateRmaButton $block */
+$order = $block->getOrder();
+if (!$order || $order->getStatus() !== 'complete'): return; endif;
+?>
+<div style="margin-top:8px;">
+    <a href="<?= $block->escapeUrl($block->getCreateRmaUrl()) ?>"
+       class="action-default scalable action-secondary">
+        <?= $block->escapeHtml(__('Create RMA')) ?>
+    </a>
+</div>

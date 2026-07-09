@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
+    <template id="kkkonrad_rma_email_rma_created"
+              label="RMA Created"
+              file="rma_created.html"
+              type="html"
+              module="Kkkonrad_Rma"
+              area="frontend"/>
+    <template id="kkkonrad_rma_email_status_changed"
+              label="RMA Status Changed"
+              file="rma_status_changed.html"
+              type="html"
+              module="Kkkonrad_Rma"
+              area="frontend"/>
+</config>

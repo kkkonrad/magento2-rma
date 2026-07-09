@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
+    <group id="default">
+        <job name="kkkonrad_rma_auto_cancel_expired"
+             instance="Kkkonrad\Rma\Cron\AutoCancelExpiredRma"
+             method="execute">
+            <!-- Run daily at 02:00 -->
+            <schedule>0 2 * * *</schedule>
+        </job>
+    </group>
+</config>

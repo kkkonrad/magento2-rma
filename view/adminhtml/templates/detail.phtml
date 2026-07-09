@@ -1,0 +1,289 @@
+<?php
+/** @var \Kkkonrad\Rma\Block\Adminhtml\Rma\Edit\Detail $block */
+/** @var \Magento\Framework\Escaper $escaper */
+$rma = $block->getRma();
+if (!$rma): ?>
+    <div class="message error"><div><?= $escaper->escapeHtml(__('RMA request not found.')) ?></div></div>
+    <?php return;
+endif;
+
+$order = $block->getOrder();
+$items = $block->getItems();
+$messages = $block->getMessages();
+$history = $block->getHistory();
+$attachments = $block->getAttachments();
+$reasons = $block->getReasons();
+$conditions = $block->getConditions();
+$statusValidator = $block->getStatusValidator();
+?>
+
+<div class="rma-detail-container">
+    <div class="page-main-actions">
+        <div class="page-actions-placeholder"></div>
+        <div class="page-actions">
+            <button onclick="window.location.href='<?= $escaper->escapeUrl($block->getUrl('kkkonrad_rma/rma/index')) ?>'" class="action-default back">
+                <span><?= $escaper->escapeHtml(__('Back')) ?></span>
+            </button>
+
+            <!-- Status action buttons -->
+            <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'approved')): ?>
+                <button onclick="confirmAction('<?= $escaper->escapeUrl($block->getApproveUrl() . '?rma_id=' . $rma->getRmaId()) ?>', '<?= $escaper->escapeHtmlAttr(__('Are you sure you want to approve this RMA? If it is a refund, a Credit Memo will be generated.')) ?>')" class="action-default primary accept">
+                    <span><?= $escaper->escapeHtml(__('Approve RMA')) ?></span>
+                </button>
+            <?php endif; ?>
+
+            <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'rejected')): ?>
+                <button onclick="confirmAction('<?= $escaper->escapeUrl($block->getRejectUrl() . '?rma_id=' . $rma->getRmaId()) ?>', '<?= $escaper->escapeHtmlAttr(__('Are you sure you want to reject this RMA?')) ?>')" class="action-default error reject">
+                    <span><?= $escaper->escapeHtml(__('Reject RMA')) ?></span>
+                </button>
+            <?php endif; ?>
+
+            <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'cancelled')): ?>
+                <button onclick="confirmAction('<?= $escaper->escapeUrl($block->getCancelUrl() . '?rma_id=' . $rma->getRmaId()) ?>', '<?= $escaper->escapeHtmlAttr(__('Are you sure you want to cancel this RMA?')) ?>')" class="action-default cancel">
+                    <span><?= $escaper->escapeHtml(__('Cancel RMA')) ?></span>
+                </button>
+            <?php endif; ?>
+
+            <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'item_received')): ?>
+                <button onclick="window.location.href='<?= $escaper->escapeUrl($block->getChangeStatusUrl() . '?rma_id=' . $rma->getRmaId() . '&status=item_received') ?>'" class="action-default success">
+                    <span><?= $escaper->escapeHtml(__('Mark as Item Received')) ?></span>
+                </button>
+            <?php endif; ?>
+
+            <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'resolved')): ?>
+                <button onclick="window.location.href='<?= $escaper->escapeUrl($block->getChangeStatusUrl() . '?rma_id=' . $rma->getRmaId() . '&status=resolved') ?>'" class="action-default success">
+                    <span><?= $escaper->escapeHtml(__('Mark as Resolved')) ?></span>
+                </button>
+            <?php endif; ?>
+
+            <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'closed')): ?>
+                <button onclick="window.location.href='<?= $escaper->escapeUrl($block->getChangeStatusUrl() . '?rma_id=' . $rma->getRmaId() . '&status=closed') ?>'" class="action-default">
+                    <span><?= $escaper->escapeHtml(__('Close RMA')) ?></span>
+                </button>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- RMA Info Cards -->
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('RMA Information')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <div class="admin__page-section-item">
+                <div class="admin__page-section-item-title">
+                    <span class="title"><?= $escaper->escapeHtml(__('Request Details')) ?></span>
+                </div>
+                <div class="admin__page-section-item-content">
+                    <table class="admin__table-secondary">
+                        <tbody>
+                            <tr>
+                                <th><?= $escaper->escapeHtml(__('RMA #')) ?></th>
+                                <td><strong><?= $escaper->escapeHtml($rma->getIncrementId()) ?></strong></td>
+                            </tr>
+                            <tr>
+                                <th><?= $escaper->escapeHtml(__('Status')) ?></th>
+                                <td>
+                                    <span class="grid-severity-notice" style="background:#e5e7eb;padding:3px 8px;border-radius:3px;font-weight:bold;text-transform:uppercase;">
+                                        <?= $escaper->escapeHtml($block->getStatusLabel($rma->getStatus())) ?>
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th><?= $escaper->escapeHtml(__('Resolution Type')) ?></th>
+                                <td style="text-transform:capitalize;"><?= $escaper->escapeHtml($rma->getResolutionType()) ?></td>
+                            </tr>
+                            <tr>
+                                <th><?= $escaper->escapeHtml(__('Created At')) ?></th>
+                                <td><?= $escaper->escapeHtml($rma->getCreatedAt()) ?></td>
+                            </tr>
+                            <?php if ($rma->getResolvedAt()): ?>
+                                <tr>
+                                    <th><?= $escaper->escapeHtml(__('Resolved At')) ?></th>
+                                    <td><?= $escaper->escapeHtml($rma->getResolvedAt()) ?></td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin__page-section-item">
+                <div class="admin__page-section-item-title">
+                    <span class="title"><?= $escaper->escapeHtml(__('Customer & Order Information')) ?></span>
+                </div>
+                <div class="admin__page-section-item-content">
+                    <table class="admin__table-secondary">
+                        <tbody>
+                            <tr>
+                                <th><?= $escaper->escapeHtml(__('Customer Name')) ?></th>
+                                <td><?= $escaper->escapeHtml($rma->getCustomerName()) ?></td>
+                            </tr>
+                            <tr>
+                                <th><?= $escaper->escapeHtml(__('Customer Email')) ?></th>
+                                <td><a href="mailto:<?= $escaper->escapeHtmlAttr($rma->getCustomerEmail()) ?>"><?= $escaper->escapeHtml($rma->getCustomerEmail()) ?></a></td>
+                            </tr>
+                            <tr>
+                                <th><?= $escaper->escapeHtml(__('Order #')) ?></th>
+                                <td>
+                                    <?php if ($order): ?>
+                                        <a href="<?= $escaper->escapeUrl($block->getUrl('sales/order/view', ['order_id' => $order->getEntityId()])) ?>" target="_blank">
+                                            <?= $escaper->escapeHtml($order->getIncrementId()) ?>
+                                        </a>
+                                    <?php else: ?>
+                                        <?= $escaper->escapeHtml($rma->getOrderIncrementId() ?? '-') ?>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Details -->
+    <div class="admin__page-section">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Items Requested for Return')) ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <div class="admin__table-wrapper">
+                <table class="data-table admin__table-primary">
+                    <thead>
+                        <tr class="headings">
+                            <th><span><?= $escaper->escapeHtml(__('Product Name')) ?></span></th>
+                            <th><span><?= $escaper->escapeHtml(__('SKU')) ?></span></th>
+                            <th><span><?= $escaper->escapeHtml(__('Quantity')) ?></span></th>
+                            <th><span><?= $escaper->escapeHtml(__('Reason')) ?></span></th>
+                            <th><span><?= $escaper->escapeHtml(__('Condition')) ?></span></th>
+                            <th><span><?= $escaper->escapeHtml(__('Price')) ?></span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($items as $item): ?>
+                            <tr>
+                                <td><?= $escaper->escapeHtml($item->getProductName()) ?></td>
+                                <td><strong><?= $escaper->escapeHtml($item->getProductSku()) ?></strong></td>
+                                <td><?= (float)$item->getQty() ?></td>
+                                <td><?= $escaper->escapeHtml($reasons[$item->getReasonId()] ?? __('N/A')) ?></td>
+                                <td><?= $escaper->escapeHtml($conditions[$item->getConditionId()] ?? __('N/A')) ?></td>
+                                <td><?= $order ? $order->formatPrice($item->getUnitPrice()) : $escaper->escapeHtml((string)$item->getUnitPrice()) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attachments -->
+    <?php if (!empty($attachments)): ?>
+        <div class="admin__page-section">
+            <div class="admin__page-section-title">
+                <span class="title"><?= $escaper->escapeHtml(__('Attachments')) ?></span>
+            </div>
+            <div class="admin__page-section-content" style="display:flex;gap:15px;flex-wrap:wrap;margin-top:10px;">
+                <?php foreach ($attachments as $attachment): ?>
+                    <div style="border:1px solid #d1d5db;border-radius:4px;padding:8px;text-align:center;width:150px;background:#ffffff;">
+                        <?php if (str_starts_with($attachment->getMimeType(), 'image/')): ?>
+                            <a href="<?= $escaper->escapeUrl($block->getMediaUrl($attachment->getFilePath())) ?>" target="_blank">
+                                <img src="<?= $escaper->escapeUrl($block->getMediaUrl($attachment->getFilePath())) ?>" style="max-width:100%;max-height:100px;object-fit:contain;margin-bottom:8px;border-radius:2px;"/>
+                            </a>
+                        <?php else: ?>
+                            <div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:24px;background:#f3f4f6;margin-bottom:8px;border-radius:2px;">📄</div>
+                        <?php endif; ?>
+                        <div style="font-size:11px;word-break:break-all;">
+                            <a href="<?= $escaper->escapeUrl($block->getMediaUrl($attachment->getFilePath())) ?>" target="_blank">
+                                <?= $escaper->escapeHtml($attachment->getFileName()) ?>
+                            </a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <!-- History and Chat Grid -->
+    <div class="admin__page-section" style="display:grid;grid-template-cols: 1fr;gap:20px;margin-top:20px;">
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">
+            
+            <!-- Chat / Communication -->
+            <div style="flex:1;min-width:300px;background:#ffffff;border:1px solid #d1d5db;border-radius:4px;padding:15px;">
+                <h3 style="margin-top:0;border-bottom:1px solid #e5e7eb;padding-bottom:8px;"><?= $escaper->escapeHtml(__('Communication Thread')) ?></h3>
+                <div style="max-height:300px;overflow-y:auto;margin-bottom:15px;display:flex;flex-direction:column;gap:10px;padding-right:5px;">
+                    <?php if (empty($messages)): ?>
+                        <p style="color:#6b7280;text-align:center;font-style:italic;margin:20px 0;"><?= $escaper->escapeHtml(__('No messages in thread.')) ?></p>
+                    <?php else: ?>
+                        <?php foreach ($messages as $message): ?>
+                            <?php 
+                            $isCustomer = $message->getAuthorType() === 'customer';
+                            $bg = $isCustomer ? '#f3f4f6' : ($message->getIsInternal() ? '#fef3c7' : '#e0e7ff');
+                            $border = $isCustomer ? '#e5e7eb' : ($message->getIsInternal() ? '#fde68a' : '#c7d2fe');
+                            ?>
+                            <div style="background:<?= $bg ?>;border:1px solid <?= $border ?>;border-radius:8px;padding:10px;align-self:<?= $isCustomer ? 'flex-start' : 'flex-end' ?>;max-width:85%;min-width:40%;">
+                                <div style="display:flex;justify-content:between;font-size:11px;color:#4b5563;margin-bottom:4px;gap:10px;">
+                                    <strong><?= $escaper->escapeHtml($message->getAuthorName() ?: ($isCustomer ? __('Customer') : __('Support'))) ?></strong>
+                                    <span><?= $escaper->escapeHtml($message->getCreatedAt()) ?></span>
+                                </div>
+                                <div style="font-size:13px;white-space:pre-wrap;"><?= $escaper->escapeHtml($message->getMessage()) ?></div>
+                                <?php if ($message->getIsInternal()): ?>
+                                    <div style="font-size:10px;color:#d97706;font-weight:bold;margin-top:4px;text-transform:uppercase;">[<?= $escaper->escapeHtml(__('Internal Note')) ?>]</div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Add Message Form -->
+                <?php if (!in_array($rma->getStatus(), ['closed', 'cancelled', 'resolved'])): ?>
+                    <form action="<?= $escaper->escapeUrl($block->getSaveMessageUrl()) ?>" method="post" style="border-top:1px solid #e5e7eb;padding-top:12px;">
+                        <input type="hidden" name="rma_id" value="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"/>
+                        <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+                        <div class="admin__field">
+                            <label class="admin__field-label" for="rma_message_text"><strong><?= $escaper->escapeHtml(__('Add Reply / Note')) ?></strong></label>
+                            <div class="admin__field-control" style="margin-top:6px;">
+                                <textarea id="rma_message_text" name="message" rows="3" style="width:100%;border-radius:4px;border:1px solid #d1d5db;padding:8px;" required></textarea>
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:between;align-items:center;margin-top:8px;">
+                            <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+                                <input type="checkbox" name="is_internal" value="1"/>
+                                <span><?= $escaper->escapeHtml(__('Internal Note (hidden from customer)')) ?></span>
+                            </label>
+                            <button type="submit" class="action-default primary">
+                                <span><?= $escaper->escapeHtml(__('Submit Message')) ?></span>
+                            </button>
+                        </div>
+                    </form>
+                <?php endif; ?>
+            </div>
+
+            <!-- Status History timeline -->
+            <div style="width:300px;background:#ffffff;border:1px solid #d1d5db;border-radius:4px;padding:15px;">
+                <h3 style="margin-top:0;border-bottom:1px solid #e5e7eb;padding-bottom:8px;"><?= $escaper->escapeHtml(__('Status History')) ?></h3>
+                <ul style="list-style:none;padding-left:12px;margin:0;border-left:2px solid #e5e7eb;display:flex;flex-direction:column;gap:15px;">
+                    <?php foreach (array_reverse($history) as $entry): ?>
+                        <li style="position:relative;">
+                            <span style="position:absolute;left:-17px;top:4px;width:8px;height:8px;border-radius:50%;background:#4f46e5;border:2px solid #ffffff;"></span>
+                            <div style="font-size:12px;font-weight:bold;"><?= $escaper->escapeHtml($block->getStatusLabel($entry->getStatusTo())) ?></div>
+                            <div style="font-size:10px;color:#6b7280;"><?= $escaper->escapeHtml($entry->getCreatedAt()) ?></div>
+                            <?php if ($entry->getComment()): ?>
+                                <div style="font-size:11px;color:#4b5563;margin-top:2px;font-style:italic;">"<?= $escaper->escapeHtml($entry->getComment()) ?>"</div>
+                            <?php endif; ?>
+                            <div style="font-size:10px;color:#9ca3af;"><?= $escaper->escapeHtml(__('By: %1', $entry->getCreatedBy())) ?></div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmAction(url, message) {
+    if (confirm(message)) {
+        window.location.href = url;
+    }
+}
+</script>

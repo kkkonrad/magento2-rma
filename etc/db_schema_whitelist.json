@@ -1,0 +1,143 @@
+{
+    "kkkonrad_rma": {
+        "column": {
+            "rma_id": true,
+            "increment_id": true,
+            "order_id": true,
+            "order_increment_id": true,
+            "customer_id": true,
+            "customer_email": true,
+            "customer_name": true,
+            "status": true,
+            "resolution_type": true,
+            "comment": true,
+            "store_id": true,
+            "created_at": true,
+            "updated_at": true,
+            "resolved_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_RMA_INCREMENT_ID": true
+        },
+        "index": {
+            "KKKONRAD_RMA_ORDER_ID": true,
+            "KKKONRAD_RMA_CUSTOMER_ID": true,
+            "KKKONRAD_RMA_STATUS": true,
+            "KKKONRAD_RMA_CREATED_AT": true
+        }
+    },
+    "kkkonrad_rma_item": {
+        "column": {
+            "item_id": true,
+            "rma_id": true,
+            "order_item_id": true,
+            "qty": true,
+            "reason_id": true,
+            "condition_id": true,
+            "unit_price": true,
+            "product_name": true,
+            "product_sku": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_RMA_ITEM_RMA_ID_KKKONRAD_RMA_RMA_ID": true
+        },
+        "index": {
+            "KKKONRAD_RMA_ITEM_RMA_ID": true,
+            "KKKONRAD_RMA_ITEM_ORDER_ITEM_ID": true
+        }
+    },
+    "kkkonrad_rma_status_history": {
+        "column": {
+            "history_id": true,
+            "rma_id": true,
+            "status_from": true,
+            "status_to": true,
+            "comment": true,
+            "created_by": true,
+            "created_by_id": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_RMA_STATUS_HISTORY_RMA_ID_KKKONRAD_RMA_RMA_ID": true
+        },
+        "index": {
+            "KKKONRAD_RMA_STATUS_HISTORY_RMA_ID": true
+        }
+    },
+    "kkkonrad_rma_message": {
+        "column": {
+            "message_id": true,
+            "rma_id": true,
+            "author_type": true,
+            "author_id": true,
+            "author_name": true,
+            "message": true,
+            "is_internal": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_RMA_MESSAGE_RMA_ID_KKKONRAD_RMA_RMA_ID": true
+        },
+        "index": {
+            "KKKONRAD_RMA_MESSAGE_RMA_ID": true
+        }
+    },
+    "kkkonrad_rma_attachment": {
+        "column": {
+            "attachment_id": true,
+            "rma_id": true,
+            "item_id": true,
+            "message_id": true,
+            "file_path": true,
+            "file_name": true,
+            "mime_type": true,
+            "file_size": true,
+            "created_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_RMA_ATTACHMENT_RMA_ID_KKKONRAD_RMA_RMA_ID": true
+        },
+        "index": {
+            "KKKONRAD_RMA_ATTACHMENT_RMA_ID": true
+        }
+    },
+    "kkkonrad_rma_reason": {
+        "column": {
+            "reason_id": true,
+            "label": true,
+            "code": true,
+            "sort_order": true,
+            "is_active": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_RMA_REASON_CODE": true
+        },
+        "index": {
+            "KKKONRAD_RMA_REASON_SORT_ORDER": true,
+            "KKKONRAD_RMA_REASON_IS_ACTIVE": true
+        }
+    },
+    "kkkonrad_rma_condition": {
+        "column": {
+            "condition_id": true,
+            "label": true,
+            "code": true,
+            "sort_order": true,
+            "is_active": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_RMA_CONDITION_CODE": true
+        },
+        "index": {
+            "KKKONRAD_RMA_CONDITION_SORT_ORDER": true,
+            "KKKONRAD_RMA_CONDITION_IS_ACTIVE": true
+        }
+    }
+}

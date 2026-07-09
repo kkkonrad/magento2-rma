@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">kkkonrad_rma_listing.kkkonrad_rma_listing_data_source</item>
+        </item>
+    </argument>
+
+    <settings>
+        <buttons>
+            <button name="add">
+                <url path="*/*/create"/>
+                <class>primary</class>
+                <label translate="true">Create RMA</label>
+            </button>
+        </buttons>
+        <spinner>kkkonrad_rma_columns</spinner>
+        <deps>
+            <dep>kkkonrad_rma_listing.kkkonrad_rma_listing_data_source</dep>
+        </deps>
+    </settings>
+
+    <dataSource name="kkkonrad_rma_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">rma_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Kkkonrad_Rma::rma_list</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider"
+                      name="kkkonrad_rma_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>rma_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filterSearch name="fulltext"/>
+        <filters name="listing_filters">
+            <filterSelect name="status" provider="${ $.parentName }">
+                <settings>
+                    <captionValue>0</captionValue>
+                    <options class="Kkkonrad\Rma\Model\Source\Status"/>
+                    <label translate="true">Status</label>
+                    <dataScope>status</dataScope>
+                    <imports>
+                        <link name="visible">componentType = column, index = status:visible</link>
+                    </imports>
+                </settings>
+            </filterSelect>
+            <filterInput name="increment_id" provider="${ $.parentName }">
+                <settings>
+                    <label translate="true">RMA #</label>
+                    <dataScope>increment_id</dataScope>
+                </settings>
+            </filterInput>
+            <filterInput name="order_increment_id" provider="${ $.parentName }">
+                <settings>
+                    <label translate="true">Order #</label>
+                    <dataScope>order_increment_id</dataScope>
+                </settings>
+            </filterInput>
+            <filterInput name="customer_email" provider="${ $.parentName }">
+                <settings>
+                    <label translate="true">Customer Email</label>
+                    <dataScope>customer_email</dataScope>
+                </settings>
+            </filterInput>
+            <filterRange name="created_at" provider="${ $.parentName }">
+                <settings>
+                    <label translate="true">Created At</label>
+                    <dataScope>created_at</dataScope>
+                    <dateFormat>Y-m-d H:i:s</dateFormat>
+                </settings>
+            </filterRange>
+        </filters>
+        <massaction name="listing_massaction">
+            <action name="delete">
+                <settings>
+                    <confirm>
+                        <message translate="true">Are you sure you want to delete selected RMAs?</message>
+                        <title translate="true">Delete selected items</title>
+                    </confirm>
+                    <url path="*/*/massDelete"/>
+                    <type>delete</type>
+                    <label translate="true">Delete</label>
+                </settings>
+            </action>
+        </massaction>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+
+    <columns name="kkkonrad_rma_columns">
+        <settings>
+            <editorConfig>
+                <param name="selectProvider" xsi:type="string">kkkonrad_rma_listing.kkkonrad_rma_listing.kkkonrad_rma_columns.ids</param>
+                <param name="enabled" xsi:type="boolean">false</param>
+                <param name="indexField" xsi:type="string">rma_id</param>
+            </editorConfig>
+            <childDefaults>
+                <param name="fieldAction" xsi:type="array">
+                    <item name="provider" xsi:type="string">kkkonrad_rma_listing.kkkonrad_rma_listing.kkkonrad_rma_columns_editor</item>
+                    <item name="target" xsi:type="string">startEdit</item>
+                    <item name="params" xsi:type="array">
+                        <item name="0" xsi:type="string">${ $.$data.rowIndex }</item>
+                        <item name="1" xsi:type="boolean">true</item>
+                    </item>
+                </param>
+            </childDefaults>
+        </settings>
+
+        <selectionsColumn name="ids">
+            <settings>
+                <indexField>rma_id</indexField>
+            </settings>
+        </selectionsColumn>
+
+        <column name="rma_id">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">ID</label>
+                <sorting>desc</sorting>
+            </settings>
+        </column>
+
+        <column name="increment_id">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">RMA #</label>
+            </settings>
+        </column>
+
+        <column name="order_increment_id">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Order #</label>
+            </settings>
+        </column>
+
+        <column name="customer_name">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Customer</label>
+            </settings>
+        </column>
+
+        <column name="customer_email">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Email</label>
+            </settings>
+        </column>
+
+        <column name="status" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <options class="Kkkonrad\Rma\Model\Source\Status"/>
+                <filter>select</filter>
+                <label translate="true">Status</label>
+            </settings>
+        </column>
+
+        <column name="resolution_type" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <options class="Kkkonrad\Rma\Model\Source\ResolutionType"/>
+                <filter>select</filter>
+                <label translate="true">Resolution</label>
+            </settings>
+        </column>
+
+        <column name="created_at" class="Magento\Ui\Component\Listing\Columns\Date" component="Magento_Ui/js/grid/columns/date">
+            <settings>
+                <filter>dateRange</filter>
+                <dataType>date</dataType>
+                <label translate="true">Created At</label>
+                <sorting>desc</sorting>
+            </settings>
+        </column>
+
+        <actionsColumn name="actions" class="Kkkonrad\Rma\Ui\Component\Listing\Column\RmaActions">
+            <settings>
+                <indexField>rma_id</indexField>
+                <label translate="true">Actions</label>
+            </settings>
+        </actionsColumn>
+    </columns>
+
+</listing>

@@ -1,0 +1,128 @@
+<!--@subject {{trans "Your Return Request #%rma_increment_id has been submitted" rma_increment_id=$rma.increment_id}}@-->
+<!--@vars {
+"var rma.increment_id":   "RMA Increment ID",
+"var rma.status":         "RMA Status",
+"var rma.resolution_type": "Resolution Type",
+"var rma.created_at":     "Created At",
+"var rma.comment":        "Customer Comment",
+"var store.frontend_name": "Store Name",
+"store url=\"\"":         "Store URL"
+}@-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{{trans "Return Request Confirmed"}}</title>
+</head>
+<body style="margin:0;padding:0;background:#f6f9fc;font-family:Inter,Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f6f9fc;padding:32px 0;">
+    <tr>
+        <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" border="0"
+                   style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+
+                <!-- Header -->
+                <tr>
+                    <td style="background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);padding:32px 40px;text-align:center;">
+                        <p style="color:#ffffff;font-size:22px;font-weight:700;margin:0;">
+                            {{trans "Return Request Received"}}
+                        </p>
+                        <p style="color:#c7d2fe;font-size:14px;margin:8px 0 0;">
+                            {{trans "RMA #%1" var1=$rma.increment_id}}
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                    <td style="padding:40px;">
+                        <p style="color:#374151;font-size:16px;line-height:1.6;margin:0 0 24px;">
+                            {{trans "Hi %1," var1=$rma.customer_name}}
+                        </p>
+                        <p style="color:#374151;font-size:16px;line-height:1.6;margin:0 0 24px;">
+                            {{trans "We have received your return request and our team will review it shortly."}}
+                        </p>
+
+                        <!-- Summary box -->
+                        <table width="100%" cellpadding="0" cellspacing="0"
+                               style="background:#f9fafb;border-radius:12px;border:1px solid #e5e7eb;margin-bottom:24px;">
+                            <tr>
+                                <td style="padding:20px;">
+                                    <table width="100%" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td style="color:#6b7280;font-size:13px;padding:6px 0;width:50%;">
+                                                {{trans "RMA Number"}}
+                                            </td>
+                                            <td style="color:#111827;font-size:13px;font-weight:600;padding:6px 0;text-align:right;">
+                                                #{{var rma.increment_id}}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#6b7280;font-size:13px;padding:6px 0;">
+                                                {{trans "Order Number"}}
+                                            </td>
+                                            <td style="color:#111827;font-size:13px;font-weight:600;padding:6px 0;text-align:right;">
+                                                #{{var rma.order_increment_id}}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#6b7280;font-size:13px;padding:6px 0;">
+                                                {{trans "Resolution Requested"}}
+                                            </td>
+                                            <td style="color:#111827;font-size:13px;font-weight:600;padding:6px 0;text-align:right;text-transform:capitalize;">
+                                                {{var rma.resolution_type}}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color:#6b7280;font-size:13px;padding:6px 0;">
+                                                {{trans "Status"}}
+                                            </td>
+                                            <td style="padding:6px 0;text-align:right;">
+                                                <span style="background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:600;
+                                                             padding:3px 10px;border-radius:20px;">
+                                                    {{trans "New"}}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 28px;">
+                            {{trans "You can track the progress of your return in your account."}}
+                        </p>
+
+                        <!-- CTA Button -->
+                        <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 32px;">
+                            <tr>
+                                <td style="background:linear-gradient(135deg,#6366f1 0%,#4f46e5 100%);
+                                           border-radius:10px;text-align:center;">
+                                    <a href="{{store url='rma/index/index'}}"
+                                       style="display:inline-block;color:#ffffff;font-size:15px;font-weight:600;
+                                              text-decoration:none;padding:14px 32px;">
+                                        {{trans "View My Returns"}}
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+
+                    </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                    <td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center;">
+                        <p style="color:#9ca3af;font-size:12px;margin:0;">
+                            {{trans "This email was sent by %1." var1=$store.frontend_name}}
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

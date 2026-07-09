@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="kkkonrad" translate="label" sortOrder="300">
+            <label>Kkkonrad</label>
+        </tab>
+        <section id="kkkonrad_rma" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <tab>kkkonrad</tab>
+            <label>RMA Settings</label>
+            <resource>Kkkonrad_Rma::config</resource>
+
+            <group id="general" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable RMA</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="return_window_days" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Return Window (Days)</label>
+                    <comment>Number of days from invoice date during which a return can be requested.</comment>
+                    <validate>required-entry validate-greater-than-zero validate-digits</validate>
+                </field>
+                <field id="max_file_size_mb" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Max Attachment Size (MB)</label>
+                    <comment>Maximum size of a single uploaded file.</comment>
+                    <validate>required-entry validate-greater-than-zero validate-digits</validate>
+                </field>
+                <field id="allowed_file_extensions" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allowed File Extensions</label>
+                    <comment>Comma-separated list, e.g.: jpg,jpeg,png,gif,pdf</comment>
+                </field>
+            </group>
+
+            <group id="email" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Email Notifications</label>
+                <field id="sender" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Email Sender</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                </field>
+                <field id="created_template" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>RMA Created Email Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <field id="status_changed_template" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Status Changed Email Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+            </group>
+
+            <group id="automation" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Automation</label>
+                <field id="auto_cancel_days" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto-Cancel After (Days)</label>
+                    <comment>Cancel RMAs with no customer response after this many days. Set to 0 to disable.</comment>
+                    <validate>validate-digits</validate>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

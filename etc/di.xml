@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- ============================================================
+         Service Contract Preferences
+    ============================================================ -->
+    <preference for="Kkkonrad\Rma\Api\Data\RmaInterface"
+                type="Kkkonrad\Rma\Model\Rma"/>
+    <preference for="Kkkonrad\Rma\Api\Data\RmaItemInterface"
+                type="Kkkonrad\Rma\Model\RmaItem"/>
+    <preference for="Kkkonrad\Rma\Api\Data\RmaMessageInterface"
+                type="Kkkonrad\Rma\Model\RmaMessage"/>
+    <preference for="Kkkonrad\Rma\Api\Data\RmaStatusHistoryInterface"
+                type="Kkkonrad\Rma\Model\RmaStatusHistory"/>
+    <preference for="Kkkonrad\Rma\Api\Data\RmaAttachmentInterface"
+                type="Kkkonrad\Rma\Model\RmaAttachment"/>
+    <preference for="Kkkonrad\Rma\Api\Data\RmaReasonInterface"
+                type="Kkkonrad\Rma\Model\RmaReason"/>
+    <preference for="Kkkonrad\Rma\Api\Data\RmaConditionInterface"
+                type="Kkkonrad\Rma\Model\RmaCondition"/>
+
+    <preference for="Kkkonrad\Rma\Api\RmaRepositoryInterface"
+                type="Kkkonrad\Rma\Model\RmaRepository"/>
+    <preference for="Kkkonrad\Rma\Api\RmaManagementInterface"
+                type="Kkkonrad\Rma\Model\RmaManagement"/>
+
+    <!-- ============================================================
+         Virtual Types for Collections Processing
+    ============================================================ -->
+    <virtualType name="Kkkonrad\Rma\Model\Api\SearchCriteria\CollectionProcessor"
+                 type="Magento\Framework\Api\SearchCriteria\CollectionProcessor">
+        <arguments>
+            <argument name="processors" xsi:type="array">
+                <item name="filters" xsi:type="object">Magento\Framework\Api\SearchCriteria\CollectionProcessor\FilterProcessor</item>
+                <item name="sorting" xsi:type="object">Magento\Framework\Api\SearchCriteria\CollectionProcessor\SortOrderProcessor</item>
+                <item name="pagination" xsi:type="object">Magento\Framework\Api\SearchCriteria\CollectionProcessor\PaginationProcessor</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Kkkonrad\Rma\Model\RmaRepository">
+        <arguments>
+            <argument name="collectionProcessor"
+                      xsi:type="object">Kkkonrad\Rma\Model\Api\SearchCriteria\CollectionProcessor</argument>
+        </arguments>
+    </type>
+
+    <!-- ============================================================
+         Admin Grid UI Source Models
+    ============================================================ -->
+    <virtualType name="Kkkonrad\Rma\Model\ResourceModel\Rma\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">kkkonrad_rma</argument>
+            <argument name="resourceModel" xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\Rma</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Kkkonrad\Rma\Model\ResourceModel\RmaReason\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">kkkonrad_rma_reason</argument>
+            <argument name="resourceModel" xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaReason</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Kkkonrad\Rma\Model\ResourceModel\RmaCondition\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">kkkonrad_rma_condition</argument>
+            <argument name="resourceModel" xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaCondition</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="kkkonrad_rma_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\Rma\Grid\Collection</item>
+                <item name="kkkonrad_rma_reason_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaReason\Grid\Collection</item>
+                <item name="kkkonrad_rma_condition_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaCondition\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+
+</config>

@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Kkkonrad_Rma::rma_menu"
+             title="RMA"
+             module="Kkkonrad_Rma"
+             sortOrder="85"
+             parent="Magento_Sales::sales"
+             resource="Kkkonrad_Rma::rma"/>
+
+        <add id="Kkkonrad_Rma::rma_list"
+             title="All Returns"
+             module="Kkkonrad_Rma"
+             sortOrder="10"
+             parent="Kkkonrad_Rma::rma_menu"
+             action="kkkonrad_rma/rma/index"
+             resource="Kkkonrad_Rma::rma_list"/>
+
+        <add id="Kkkonrad_Rma::rma_reasons"
+             title="Return Reasons"
+             module="Kkkonrad_Rma"
+             sortOrder="20"
+             parent="Kkkonrad_Rma::rma_menu"
+             action="kkkonrad_rma/reason/index"
+             resource="Kkkonrad_Rma::reasons_manage"/>
+
+        <add id="Kkkonrad_Rma::rma_conditions"
+             title="Item Conditions"
+             module="Kkkonrad_Rma"
+             sortOrder="30"
+             parent="Kkkonrad_Rma::rma_menu"
+             action="kkkonrad_rma/condition/index"
+             resource="Kkkonrad_Rma::conditions_manage"/>
+    </menu>
+</config>

@@ -1,0 +1,151 @@
+<?php
+declare(strict_types=1);
+
+use Hyva\Theme\ViewModel\HyvaCsp;
+use Kkkonrad\Rma\Block\Customer\Rma\ListRma;
+use Magento\Framework\Escaper;
+
+/** @var ListRma $block */
+/** @var Escaper $escaper */
+/** @var HyvaCsp $hyvaCsp */
+
+$rmaList = $block->getRmaList();
+?>
+
+<div class="rma-account-section">
+
+    <!-- Page Header -->
+    <div class="flex flex-wrap items-center justify-between mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">
+                <?= $escaper->escapeHtml(__('My Returns (RMA)')) ?>
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">
+                <?= $escaper->escapeHtml(__('Track the status of your return requests')) ?>
+            </p>
+        </div>
+        <a href="<?= $escaper->escapeUrl($block->getCreateUrl()) ?>"
+           id="rma-create-new-btn"
+           class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white text-sm font-semibold
+                  rounded-lg shadow-sm hover:bg-primary-darker focus:outline-none focus:ring-2
+                  focus:ring-primary focus:ring-offset-2 transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24"
+                 stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            <?= $escaper->escapeHtml(__('Request a Return')) ?>
+        </a>
+    </div>
+
+    <?php if (empty($rmaList)): ?>
+        <!-- Empty state -->
+        <div class="flex flex-col items-center justify-center py-20 text-center
+                    border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 text-gray-300 mb-4" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                      d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"/>
+            </svg>
+            <p class="text-xl font-semibold text-gray-500 mb-2">
+                <?= $escaper->escapeHtml(__('No return requests yet')) ?>
+            </p>
+            <p class="text-sm text-gray-400 mb-6 max-w-xs">
+                <?= $escaper->escapeHtml(__('If you need to return an item, click the button above to get started.')) ?>
+            </p>
+            <a href="<?= $escaper->escapeUrl($block->getCreateUrl()) ?>"
+               class="px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-lg
+                      hover:bg-primary-darker transition-colors duration-200">
+                <?= $escaper->escapeHtml(__('Request a Return')) ?>
+            </a>
+        </div>
+
+    <?php else: ?>
+        <!-- RMA Table (desktop) / Cards (mobile) -->
+        <div class="overflow-hidden rounded-2xl border border-gray-200 shadow-sm">
+
+            <!-- Desktop Table -->
+            <table class="hidden md:table w-full text-sm">
+                <thead class="bg-gray-50 text-xs uppercase text-gray-500 tracking-wider">
+                    <tr>
+                        <th class="px-6 py-4 text-left font-semibold"><?= $escaper->escapeHtml(__('RMA #')) ?></th>
+                        <th class="px-6 py-4 text-left font-semibold"><?= $escaper->escapeHtml(__('Order #')) ?></th>
+                        <th class="px-6 py-4 text-left font-semibold"><?= $escaper->escapeHtml(__('Status')) ?></th>
+                        <th class="px-6 py-4 text-left font-semibold"><?= $escaper->escapeHtml(__('Resolution')) ?></th>
+                        <th class="px-6 py-4 text-left font-semibold"><?= $escaper->escapeHtml(__('Date')) ?></th>
+                        <th class="px-6 py-4 text-right font-semibold"><?= $escaper->escapeHtml(__('Action')) ?></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    <?php foreach ($rmaList as $rma): ?>
+                        <tr class="hover:bg-gray-50 transition-colors duration-150 group">
+                            <td class="px-6 py-4 font-mono font-medium text-gray-900">
+                                #<?= $escaper->escapeHtml($rma->getIncrementId()) ?>
+                            </td>
+                            <td class="px-6 py-4 text-gray-600">
+                                <?= $escaper->escapeHtml($rma->getOrderIncrementId() ?? '-') ?>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                             <?= $escaper->escapeHtmlAttr($block->getStatusBadgeClass($rma->getStatus())) ?>">
+                                    <?= $escaper->escapeHtml($block->getStatusLabel($rma->getStatus())) ?>
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-600 capitalize">
+                                <?= $escaper->escapeHtml($rma->getResolutionType() ?? '-') ?>
+                            </td>
+                            <td class="px-6 py-4 text-gray-500 text-xs">
+                                <?= $escaper->escapeHtml($rma->getCreatedAt() ? date('d.m.Y', strtotime($rma->getCreatedAt())) : '-') ?>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="<?= $escaper->escapeUrl($block->getViewUrl((int) $rma->getRmaId())) ?>"
+                                   class="inline-flex items-center gap-1 text-primary text-sm font-medium
+                                          hover:underline focus:outline-none focus:ring-2 focus:ring-primary
+                                          rounded-sm transition-colors">
+                                    <?= $escaper->escapeHtml(__('View Details')) ?>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </a>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+
+            <!-- Mobile Cards -->
+            <div class="md:hidden divide-y divide-gray-100">
+                <?php foreach ($rmaList as $rma): ?>
+                    <a href="<?= $escaper->escapeUrl($block->getViewUrl((int) $rma->getRmaId())) ?>"
+                       class="block p-4 hover:bg-gray-50 transition-colors duration-150">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-mono font-semibold text-gray-900 text-sm">
+                                        #<?= $escaper->escapeHtml($rma->getIncrementId()) ?>
+                                    </span>
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                                 <?= $escaper->escapeHtmlAttr($block->getStatusBadgeClass($rma->getStatus())) ?>">
+                                        <?= $escaper->escapeHtml($block->getStatusLabel($rma->getStatus())) ?>
+                                    </span>
+                                </div>
+                                <p class="text-sm text-gray-500">
+                                    <?= $escaper->escapeHtml(__('Order #')) ?><?= $escaper->escapeHtml($rma->getOrderIncrementId() ?? '-') ?>
+                                </p>
+                                <p class="text-xs text-gray-400 mt-1">
+                                    <?= $escaper->escapeHtml($rma->getCreatedAt() ? date('d.m.Y', strtotime($rma->getCreatedAt())) : '-') ?>
+                                </p>
+                            </div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5"
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+
+        </div><!-- /.overflow-hidden -->
+    <?php endif; ?>
+
+</div>

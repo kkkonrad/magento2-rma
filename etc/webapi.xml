@@ -1,0 +1,104 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+
+    <!-- ============================================================
+         Customer REST API (own RMAs only)
+    ============================================================ -->
+
+    <!-- List customer's own RMAs -->
+    <route url="/V1/rma/mine" method="GET">
+        <service class="Kkkonrad\Rma\Api\RmaRepositoryInterface" method="getListForCustomer"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="customerId" force="true">%customer_id%</parameter>
+        </data>
+    </route>
+
+    <!-- Get specific RMA (customer must own it — validated in repository) -->
+    <route url="/V1/rma/mine/:rmaId" method="GET">
+        <service class="Kkkonrad\Rma\Api\RmaRepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- Create new RMA -->
+    <route url="/V1/rma/create" method="POST">
+        <service class="Kkkonrad\Rma\Api\RmaManagementInterface" method="createFromOrder"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- Add message to RMA -->
+    <route url="/V1/rma/:rmaId/message" method="POST">
+        <service class="Kkkonrad\Rma\Api\RmaManagementInterface" method="addMessage"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+    </route>
+
+    <!-- ============================================================
+         Admin REST API
+    ============================================================ -->
+
+    <!-- List all RMAs -->
+    <route url="/V1/rma" method="GET">
+        <service class="Kkkonrad\Rma\Api\RmaRepositoryInterface" method="getList"/>
+        <resources>
+            <resource ref="Kkkonrad_Rma::rma_list"/>
+        </resources>
+    </route>
+
+    <!-- Get RMA by ID -->
+    <route url="/V1/rma/:rmaId" method="GET">
+        <service class="Kkkonrad\Rma\Api\RmaRepositoryInterface" method="getById"/>
+        <resources>
+            <resource ref="Kkkonrad_Rma::rma_edit"/>
+        </resources>
+    </route>
+
+    <!-- Delete RMA -->
+    <route url="/V1/rma/:rmaId" method="DELETE">
+        <service class="Kkkonrad\Rma\Api\RmaRepositoryInterface" method="deleteById"/>
+        <resources>
+            <resource ref="Kkkonrad_Rma::rma_delete"/>
+        </resources>
+    </route>
+
+    <!-- Change RMA status -->
+    <route url="/V1/rma/:rmaId/status" method="PUT">
+        <service class="Kkkonrad\Rma\Api\RmaManagementInterface" method="changeStatus"/>
+        <resources>
+            <resource ref="Kkkonrad_Rma::rma_change_status"/>
+        </resources>
+    </route>
+
+    <!-- Approve RMA -->
+    <route url="/V1/rma/:rmaId/approve" method="POST">
+        <service class="Kkkonrad\Rma\Api\RmaManagementInterface" method="approve"/>
+        <resources>
+            <resource ref="Kkkonrad_Rma::rma_approve"/>
+        </resources>
+    </route>
+
+    <!-- Reject RMA -->
+    <route url="/V1/rma/:rmaId/reject" method="POST">
+        <service class="Kkkonrad\Rma\Api\RmaManagementInterface" method="reject"/>
+        <resources>
+            <resource ref="Kkkonrad_Rma::rma_approve"/>
+        </resources>
+    </route>
+
+    <!-- Add admin message to RMA -->
+    <route url="/V1/rma/:rmaId/admin/message" method="POST">
+        <service class="Kkkonrad\Rma\Api\RmaManagementInterface" method="addMessage"/>
+        <resources>
+            <resource ref="Kkkonrad_Rma::rma_edit"/>
+        </resources>
+    </route>
+
+</routes>

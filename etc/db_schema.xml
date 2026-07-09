@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+
+    <!-- ============================================================
+         RMA Header Table
+    ============================================================ -->
+    <table name="kkkonrad_rma" resource="default" engine="innodb" comment="RMA Requests">
+        <column xsi:type="int" name="rma_id" unsigned="true" nullable="false" identity="true" comment="RMA ID"/>
+        <column xsi:type="varchar" name="increment_id" nullable="false" length="32" comment="Increment ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" comment="Order ID"/>
+        <column xsi:type="varchar" name="order_increment_id" nullable="true" length="50" comment="Order Increment ID"/>
+        <column xsi:type="int" name="customer_id" unsigned="true" nullable="true" comment="Customer ID"/>
+        <column xsi:type="varchar" name="customer_email" nullable="true" length="255" comment="Customer Email"/>
+        <column xsi:type="varchar" name="customer_name" nullable="true" length="255" comment="Customer Name"/>
+        <column xsi:type="varchar" name="status" nullable="false" length="64" comment="Status" default="new"/>
+        <column xsi:type="varchar" name="resolution_type" nullable="true" length="64" comment="Resolution Type"/>
+        <column xsi:type="text" name="comment" nullable="true" comment="Customer Comment"/>
+        <column xsi:type="int" name="store_id" unsigned="true" nullable="false" comment="Store ID"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <column xsi:type="timestamp" name="resolved_at" nullable="true" comment="Resolved At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="rma_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_RMA_INCREMENT_ID">
+            <column name="increment_id"/>
+        </constraint>
+        <index referenceId="KKKONRAD_RMA_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+        <index referenceId="KKKONRAD_RMA_CUSTOMER_ID" indexType="btree">
+            <column name="customer_id"/>
+        </index>
+        <index referenceId="KKKONRAD_RMA_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+        <index referenceId="KKKONRAD_RMA_CREATED_AT" indexType="btree">
+            <column name="created_at"/>
+        </index>
+    </table>
+
+    <!-- ============================================================
+         RMA Items Table
+    ============================================================ -->
+    <table name="kkkonrad_rma_item" resource="default" engine="innodb" comment="RMA Items">
+        <column xsi:type="int" name="item_id" unsigned="true" nullable="false" identity="true" comment="Item ID"/>
+        <column xsi:type="int" name="rma_id" unsigned="true" nullable="false" comment="RMA ID"/>
+        <column xsi:type="int" name="order_item_id" unsigned="true" nullable="false" comment="Order Item ID"/>
+        <column xsi:type="decimal" name="qty" scale="4" precision="12" unsigned="true" nullable="false" comment="Quantity"/>
+        <column xsi:type="int" name="reason_id" unsigned="true" nullable="true" comment="Return Reason ID"/>
+        <column xsi:type="int" name="condition_id" unsigned="true" nullable="true" comment="Item Condition ID"/>
+        <column xsi:type="decimal" name="unit_price" scale="4" precision="12" unsigned="false" nullable="true" comment="Unit Price"/>
+        <column xsi:type="varchar" name="product_name" nullable="true" length="255" comment="Product Name"/>
+        <column xsi:type="varchar" name="product_sku" nullable="true" length="255" comment="Product SKU"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="item_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_RMA_ITEM_RMA_ID_KKKONRAD_RMA_RMA_ID"
+                    table="kkkonrad_rma_item" column="rma_id"
+                    referenceTable="kkkonrad_rma" referenceColumn="rma_id"
+                    onDelete="CASCADE"/>
+        <index referenceId="KKKONRAD_RMA_ITEM_RMA_ID" indexType="btree">
+            <column name="rma_id"/>
+        </index>
+        <index referenceId="KKKONRAD_RMA_ITEM_ORDER_ITEM_ID" indexType="btree">
+            <column name="order_item_id"/>
+        </index>
+    </table>
+
+    <!-- ============================================================
+         RMA Status History Table
+    ============================================================ -->
+    <table name="kkkonrad_rma_status_history" resource="default" engine="innodb" comment="RMA Status History">
+        <column xsi:type="int" name="history_id" unsigned="true" nullable="false" identity="true" comment="History ID"/>
+        <column xsi:type="int" name="rma_id" unsigned="true" nullable="false" comment="RMA ID"/>
+        <column xsi:type="varchar" name="status_from" nullable="true" length="64" comment="Status From"/>
+        <column xsi:type="varchar" name="status_to" nullable="false" length="64" comment="Status To"/>
+        <column xsi:type="text" name="comment" nullable="true" comment="Comment"/>
+        <column xsi:type="varchar" name="created_by" nullable="false" length="16" default="system" comment="Created By (admin/customer/system)"/>
+        <column xsi:type="int" name="created_by_id" unsigned="true" nullable="true" comment="Creator ID"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="history_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_RMA_STATUS_HISTORY_RMA_ID_KKKONRAD_RMA_RMA_ID"
+                    table="kkkonrad_rma_status_history" column="rma_id"
+                    referenceTable="kkkonrad_rma" referenceColumn="rma_id"
+                    onDelete="CASCADE"/>
+        <index referenceId="KKKONRAD_RMA_STATUS_HISTORY_RMA_ID" indexType="btree">
+            <column name="rma_id"/>
+        </index>
+    </table>
+
+    <!-- ============================================================
+         RMA Messages Table
+    ============================================================ -->
+    <table name="kkkonrad_rma_message" resource="default" engine="innodb" comment="RMA Messages">
+        <column xsi:type="int" name="message_id" unsigned="true" nullable="false" identity="true" comment="Message ID"/>
+        <column xsi:type="int" name="rma_id" unsigned="true" nullable="false" comment="RMA ID"/>
+        <column xsi:type="varchar" name="author_type" nullable="false" length="16" comment="Author Type (admin/customer/system)"/>
+        <column xsi:type="int" name="author_id" unsigned="true" nullable="true" comment="Author ID"/>
+        <column xsi:type="varchar" name="author_name" nullable="true" length="255" comment="Author Name"/>
+        <column xsi:type="text" name="message" nullable="false" comment="Message Content"/>
+        <column xsi:type="boolean" name="is_internal" nullable="false" default="false" comment="Is Internal Note (admin only)"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="message_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_RMA_MESSAGE_RMA_ID_KKKONRAD_RMA_RMA_ID"
+                    table="kkkonrad_rma_message" column="rma_id"
+                    referenceTable="kkkonrad_rma" referenceColumn="rma_id"
+                    onDelete="CASCADE"/>
+        <index referenceId="KKKONRAD_RMA_MESSAGE_RMA_ID" indexType="btree">
+            <column name="rma_id"/>
+        </index>
+    </table>
+
+    <!-- ============================================================
+         RMA Attachments Table
+    ============================================================ -->
+    <table name="kkkonrad_rma_attachment" resource="default" engine="innodb" comment="RMA Attachments">
+        <column xsi:type="int" name="attachment_id" unsigned="true" nullable="false" identity="true" comment="Attachment ID"/>
+        <column xsi:type="int" name="rma_id" unsigned="true" nullable="false" comment="RMA ID"/>
+        <column xsi:type="int" name="item_id" unsigned="true" nullable="true" comment="RMA Item ID (nullable)"/>
+        <column xsi:type="int" name="message_id" unsigned="true" nullable="true" comment="RMA Message ID (nullable)"/>
+        <column xsi:type="varchar" name="file_path" nullable="false" length="512" comment="File Path (relative to media dir)"/>
+        <column xsi:type="varchar" name="file_name" nullable="false" length="255" comment="Original File Name"/>
+        <column xsi:type="varchar" name="mime_type" nullable="false" length="128" comment="MIME Type"/>
+        <column xsi:type="int" name="file_size" unsigned="true" nullable="false" comment="File Size in bytes"/>
+        <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="attachment_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="KKKONRAD_RMA_ATTACHMENT_RMA_ID_KKKONRAD_RMA_RMA_ID"
+                    table="kkkonrad_rma_attachment" column="rma_id"
+                    referenceTable="kkkonrad_rma" referenceColumn="rma_id"
+                    onDelete="CASCADE"/>
+        <index referenceId="KKKONRAD_RMA_ATTACHMENT_RMA_ID" indexType="btree">
+            <column name="rma_id"/>
+        </index>
+    </table>
+
+    <!-- ============================================================
+         RMA Return Reasons Dictionary
+    ============================================================ -->
+    <table name="kkkonrad_rma_reason" resource="default" engine="innodb" comment="RMA Return Reasons">
+        <column xsi:type="int" name="reason_id" unsigned="true" nullable="false" identity="true" comment="Reason ID"/>
+        <column xsi:type="varchar" name="label" nullable="false" length="255" comment="Label"/>
+        <column xsi:type="varchar" name="code" nullable="false" length="64" comment="Unique Code"/>
+        <column xsi:type="smallint" name="sort_order" unsigned="true" nullable="false" default="0" comment="Sort Order"/>
+        <column xsi:type="boolean" name="is_active" nullable="false" default="true" comment="Is Active"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="reason_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_RMA_REASON_CODE">
+            <column name="code"/>
+        </constraint>
+        <index referenceId="KKKONRAD_RMA_REASON_SORT_ORDER" indexType="btree">
+            <column name="sort_order"/>
+        </index>
+        <index referenceId="KKKONRAD_RMA_REASON_IS_ACTIVE" indexType="btree">
+            <column name="is_active"/>
+        </index>
+    </table>
+
+    <!-- ============================================================
+         RMA Item Condition Dictionary
+    ============================================================ -->
+    <table name="kkkonrad_rma_condition" resource="default" engine="innodb" comment="RMA Item Conditions">
+        <column xsi:type="int" name="condition_id" unsigned="true" nullable="false" identity="true" comment="Condition ID"/>
+        <column xsi:type="varchar" name="label" nullable="false" length="255" comment="Label"/>
+        <column xsi:type="varchar" name="code" nullable="false" length="64" comment="Unique Code"/>
+        <column xsi:type="smallint" name="sort_order" unsigned="true" nullable="false" default="0" comment="Sort Order"/>
+        <column xsi:type="boolean" name="is_active" nullable="false" default="true" comment="Is Active"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="condition_id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="KKKONRAD_RMA_CONDITION_CODE">
+            <column name="code"/>
+        </constraint>
+        <index referenceId="KKKONRAD_RMA_CONDITION_SORT_ORDER" indexType="btree">
+            <column name="sort_order"/>
+        </index>
+        <index referenceId="KKKONRAD_RMA_CONDITION_IS_ACTIVE" indexType="btree">
+            <column name="is_active"/>
+        </index>
+    </table>
+
+</schema>

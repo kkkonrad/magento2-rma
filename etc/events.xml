@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+
+    <!-- RMA created — send notification email -->
+    <event name="kkkonrad_rma_created">
+        <observer name="kkkonrad_rma_send_created_email"
+                  instance="Kkkonrad\Rma\Observer\SendRmaCreatedEmail"/>
+    </event>
+
+    <!-- RMA status changed — send notification email -->
+    <event name="kkkonrad_rma_status_changed">
+        <observer name="kkkonrad_rma_send_status_changed_email"
+                  instance="Kkkonrad\Rma\Observer\SendRmaStatusChangedEmail"/>
+    </event>
+
+</config>
