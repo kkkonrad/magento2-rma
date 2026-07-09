@@ -33,7 +33,8 @@ class Edit extends Action
             $this->reasonResource->load($model, $id);
             if (!$model->getReasonId()) {
                 $this->messageManager->addErrorMessage(__('This return reason no longer exists.'));
-                return $this->_redirect('*/*/index');
+                $resultRedirect = $this->resultRedirectFactory->create();
+                return $resultRedirect->setPath('*/*/index');
             }
         }
 

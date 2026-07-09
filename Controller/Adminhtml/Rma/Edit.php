@@ -31,7 +31,8 @@ class Edit extends Action
                 $title = __('RMA #%1', $rma->getIncrementId());
             } catch (NoSuchEntityException) {
                 $this->messageManager->addErrorMessage(__('This RMA no longer exists.'));
-                return $this->_redirect('*/*/index');
+                $resultRedirect = $this->resultRedirectFactory->create();
+                return $resultRedirect->setPath('*/*/index');
             }
         } else {
             $title = __('New RMA');

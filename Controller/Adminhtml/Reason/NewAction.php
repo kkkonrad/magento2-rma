@@ -15,6 +15,7 @@ class NewAction extends Action
 
     public function execute(): \Magento\Framework\Controller\ResultInterface
     {
-        return $this->_redirect('*/*/edit');
+        $resultRedirect = $this->resultRedirectFactory->create();
+        return $resultRedirect->setPath('*/*/edit');
     }
 }

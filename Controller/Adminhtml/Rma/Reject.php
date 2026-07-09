@@ -33,6 +33,7 @@ class Reject extends Action
             $this->messageManager->addErrorMessage(__('An error occurred while rejecting the RMA.'));
         }
 
-        return $this->_redirect('*/*/edit', ['rma_id' => $rmaId]);
+        $resultRedirect = $this->resultRedirectFactory->create();
+        return $resultRedirect->setPath('*/*/edit', ['rma_id' => $rmaId]);
     }
 }

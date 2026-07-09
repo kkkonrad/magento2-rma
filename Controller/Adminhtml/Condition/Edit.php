@@ -33,7 +33,8 @@ class Edit extends Action
             $this->conditionResource->load($model, $id);
             if (!$model->getConditionId()) {
                 $this->messageManager->addErrorMessage(__('This item condition no longer exists.'));
-                return $this->_redirect('*/*/index');
+                $resultRedirect = $this->resultRedirectFactory->create();
+                return $resultRedirect->setPath('*/*/index');
             }
         }
 

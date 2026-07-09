@@ -30,6 +30,7 @@ class Delete extends Action
             $this->messageManager->addErrorMessage($e->getMessage());
         }
 
-        return $this->_redirect('*/*/index');
+        $resultRedirect = $this->resultRedirectFactory->create();
+        return $resultRedirect->setPath('*/*/index');
     }
 }

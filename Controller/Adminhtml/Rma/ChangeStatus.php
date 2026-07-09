@@ -36,6 +36,7 @@ class ChangeStatus extends Action
             $this->messageManager->addErrorMessage(__('An error occurred while updating the RMA status.'));
         }
 
-        return $this->_redirect('*/*/edit', ['rma_id' => $rmaId]);
+        $resultRedirect = $this->resultRedirectFactory->create();
+        return $resultRedirect->setPath('*/*/edit', ['rma_id' => $rmaId]);
     }
 }

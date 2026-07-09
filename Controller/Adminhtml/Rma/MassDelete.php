@@ -44,6 +44,7 @@ class MassDelete extends Action
             $this->messageManager->addErrorMessage(__('%1 RMA(s) could not be deleted.', $errors));
         }
 
-        return $this->_redirect('*/*/index');
+        $resultRedirect = $this->resultRedirectFactory->create();
+        return $resultRedirect->setPath('*/*/index');
     }
 }
