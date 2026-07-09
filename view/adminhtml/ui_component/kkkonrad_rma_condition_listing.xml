@@ -96,7 +96,7 @@
             </settings>
         </column>
 
-        <column name="label">
+        <column name="label" class="Kkkonrad\Rma\Ui\Component\Listing\Column\TranslateValue">
             <settings>
                 <filter>text</filter>
                 <label translate="true">Label</label>
@@ -121,6 +121,7 @@
             <settings>
                 <options class="Magento\Config\Model\Config\Source\Yesno"/>
                 <filter>select</filter>
+                <dataType>select</dataType>
                 <label translate="true">Is Active</label>
             </settings>
         </column>

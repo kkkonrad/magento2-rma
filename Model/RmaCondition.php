@@ -11,6 +11,8 @@ class RmaCondition extends AbstractModel implements RmaConditionInterface
 {
     protected $_eventPrefix = 'kkkonrad_rma_condition';
 
+    protected $_idFieldName = 'condition_id';
+
     protected function _construct(): void { $this->_init(RmaConditionResource::class); }
 
     public function getConditionId(): ?int { $v = $this->getData(self::CONDITION_ID); return $v !== null ? (int)$v : null; }

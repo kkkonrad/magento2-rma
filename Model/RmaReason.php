@@ -11,6 +11,8 @@ class RmaReason extends AbstractModel implements RmaReasonInterface
 {
     protected $_eventPrefix = 'kkkonrad_rma_reason';
 
+    protected $_idFieldName = 'reason_id';
+
     protected function _construct(): void { $this->_init(RmaReasonResource::class); }
 
     public function getReasonId(): ?int { $v = $this->getData(self::REASON_ID); return $v !== null ? (int)$v : null; }

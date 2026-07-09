@@ -15,6 +15,7 @@
             <button name="back" class="Kkkonrad\Rma\Block\Adminhtml\Rma\Edit\BackButton"/>
         </buttons>
         <namespace>kkkonrad_rma_reason_form</namespace>
+        <dataScope>data</dataScope>
         <deps>
             <dep>kkkonrad_rma_reason_form.kkkonrad_rma_reason_form_data_source</dep>
         </deps>
