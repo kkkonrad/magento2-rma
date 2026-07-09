@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Customer:etc/sections.xsd">
-    <!-- Invalidate customer section cache after RMA operations -->
+    <!-- Invalidate customer section cache after RMA submission -->
     <action name="rma/index/save">
-        <section name="cart"/>
+        <section name="customer"/>
     </action>
+    <!-- Invalidate customer section cache after sending a message -->
     <action name="rma/index/addMessage">
-        <section name="cart"/>
+        <section name="customer"/>
     </action>
 </config>
