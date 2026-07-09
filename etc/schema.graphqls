@@ -1,0 +1,82 @@
+type Query {
+    """
+    Returns the list of RMAs for the currently authenticated customer.
+    """
+    customerRmas(
+        pageSize: Int = 10
+        currentPage: Int = 1
+    ): CustomerRmaOutput @resolver(class: "Kkkonrad\\Rma\\Model\\Resolver\\CustomerRmaList") @doc(description: "Returns RMA list for the current customer") @cache(cacheIdentity: "Kkkonrad\\Rma\\Model\\Resolver\\Cache\\CustomerRmaListIdentity")
+
+    """
+    Returns a single RMA by ID. Customer can only access their own RMAs.
+    """
+    customerRma(rma_id: Int!): RmaDetails @resolver(class: "Kkkonrad\\Rma\\Model\\Resolver\\CustomerRma") @doc(description: "Returns a single RMA for the current customer")
+}
+
+type CustomerRmaOutput @doc(description: "Paginated list of customer RMAs") {
+    items: [RmaSummary]! @doc(description: "List of RMAs")
+    total_count: Int! @doc(description: "Total number of RMAs")
+    page_info: SearchResultPageInfo @doc(description: "Pagination info")
+}
+
+type RmaSummary @doc(description: "Basic RMA data for list view") {
+    rma_id: Int! @doc(description: "RMA entity ID")
+    increment_id: String! @doc(description: "Human-readable RMA number (e.g. RMA-000001)")
+    order_increment_id: String! @doc(description: "Related order number")
+    status: String! @doc(description: "Current RMA status code")
+    status_label: String! @doc(description: "Human-readable status label")
+    resolution_type: String! @doc(description: "Desired resolution (refund, exchange, repair, voucher)")
+    created_at: String! @doc(description: "Creation date ISO 8601")
+    updated_at: String @doc(description: "Last update date ISO 8601")
+}
+
+type RmaDetails @doc(description: "Full RMA detail including items and messages") {
+    rma_id: Int! @doc(description: "RMA entity ID")
+    increment_id: String! @doc(description: "Human-readable RMA number")
+    order_id: Int! @doc(description: "Related order entity ID")
+    order_increment_id: String! @doc(description: "Related order number")
+    status: String! @doc(description: "Current RMA status code")
+    status_label: String! @doc(description: "Human-readable status label")
+    resolution_type: String! @doc(description: "Desired resolution")
+    comment: String @doc(description: "Customer comment")
+    created_at: String! @doc(description: "Creation date ISO 8601")
+    updated_at: String @doc(description: "Last update date ISO 8601")
+    items: [RmaItem]! @doc(description: "Return items")
+    messages: [RmaMessage]! @doc(description: "Thread messages")
+    status_history: [RmaStatusHistory]! @doc(description: "Status change log")
+    attachments: [RmaAttachment]! @doc(description: "Uploaded files")
+}
+
+type RmaItem @doc(description: "Single item in an RMA request") {
+    rma_item_id: Int! @doc(description: "Item entity ID")
+    order_item_id: Int! @doc(description: "Related order item entity ID")
+    qty: Float! @doc(description: "Quantity being returned")
+    reason_id: Int @doc(description: "Return reason entity ID")
+    condition_id: Int @doc(description: "Item condition entity ID")
+}
+
+type RmaMessage @doc(description: "Message in the RMA communication thread") {
+    message_id: Int! @doc(description: "Message entity ID")
+    message: String! @doc(description: "Message text")
+    author_type: String! @doc(description: "Who sent the message: customer | admin | system")
+    author_name: String @doc(description: "Author display name")
+    is_internal: Boolean! @doc(description: "Whether the message is internal (admin-only)")
+    created_at: String! @doc(description: "Timestamp ISO 8601")
+}
+
+type RmaStatusHistory @doc(description: "Record of an RMA status change") {
+    history_id: Int! @doc(description: "History entry entity ID")
+    status_from: String @doc(description: "Previous status code")
+    status_to: String! @doc(description: "New status code")
+    comment: String @doc(description: "Optional comment")
+    changed_by: String! @doc(description: "Who changed the status: admin | customer | system")
+    created_at: String! @doc(description: "Timestamp ISO 8601")
+}
+
+type RmaAttachment @doc(description: "File attached to an RMA") {
+    attachment_id: Int! @doc(description: "Attachment entity ID")
+    file_name: String! @doc(description: "Original file name")
+    file_size: Int! @doc(description: "File size in bytes")
+    mime_type: String! @doc(description: "MIME type")
+    url: String! @doc(description: "Public download URL")
+}

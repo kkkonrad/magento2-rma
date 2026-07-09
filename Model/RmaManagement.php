@@ -256,7 +256,7 @@ class RmaManagement implements RmaManagementInterface
         }
 
         // Check return window (configured in days)
-        $returnWindowDays = $this->config->getReturnWindowDays($order->getStoreId());
+        $returnWindowDays = $this->config->getReturnWindowDays((int) $order->getStoreId());
         $invoicedAt = $order->getUpdatedAt() ?? $order->getCreatedAt();
         $deadline = strtotime('+' . $returnWindowDays . ' days', strtotime($invoicedAt));
 

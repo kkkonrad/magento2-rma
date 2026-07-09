@@ -27,7 +27,7 @@ class SendRmaCreatedEmail implements ObserverInterface
         /** @var \Kkkonrad\Rma\Model\Rma $rma */
         $rma = $observer->getData('rma');
 
-        if (!$rma || !$this->config->isEnabled($rma->getStoreId())) {
+        if (!$rma || !$this->config->isEnabled((int) $rma->getStoreId())) {
             return;
         }
 
@@ -35,16 +35,16 @@ class SendRmaCreatedEmail implements ObserverInterface
             $this->inlineTranslation->suspend();
 
             $transport = $this->transportBuilder
-                ->setTemplateIdentifier($this->config->getCreatedEmailTemplate($rma->getStoreId()))
+                ->setTemplateIdentifier($this->config->getCreatedEmailTemplate((int) $rma->getStoreId()))
                 ->setTemplateOptions([
                     'area'     => \Magento\Framework\App\Area::AREA_FRONTEND,
-                    'store'    => $rma->getStoreId(),
+                    'store'    => (int) $rma->getStoreId(),
                 ])
                 ->setTemplateVars([
                     'rma'   => $rma,
-                    'store' => $this->storeManager->getStore($rma->getStoreId()),
+                    'store' => $this->storeManager->getStore((int) $rma->getStoreId()),
                 ])
-                ->setFromByScope($this->config->getEmailSender($rma->getStoreId()))
+                ->setFromByScope($this->config->getEmailSender((int) $rma->getStoreId()))
                 ->addTo($rma->getCustomerEmail(), $rma->getCustomerName())
                 ->getTransport();
 

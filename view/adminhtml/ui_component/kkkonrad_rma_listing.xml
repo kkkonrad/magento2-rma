@@ -80,7 +80,6 @@
                 <settings>
                     <label translate="true">Created At</label>
                     <dataScope>created_at</dataScope>
-                    <dateFormat>Y-m-d H:i:s</dateFormat>
                 </settings>
             </filterRange>
         </filters>
