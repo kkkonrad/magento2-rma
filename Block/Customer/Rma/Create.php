@@ -31,6 +31,7 @@ class Create extends Template
         private readonly ResolutionType $resolutionTypeSource,
         private readonly Config $config,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly \Magento\Framework\Data\Form\FormKey $formKey,
         array $data = []
     ) {
         parent::__construct($context, $data);

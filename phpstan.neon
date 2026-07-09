@@ -1,0 +1,17 @@
+parameters:
+    level: 2
+    paths:
+        - .
+    excludePaths:
+        analyse:
+            - Test/*
+            - vendor/*
+    bootstrapFiles:
+        # Boostrap file to load Magento classes and auto-generated classes
+        - ../../../../dev/tests/static/framework/autoload.php
+    ignoreErrors:
+        # Ignore generic magic method errors common in Magento models
+        - '#Call to an undefined method [a-zA-Z0-9\\_]+::get[a-zA-Z0-9_]+\(\)#'
+        - '#Call to an undefined method [a-zA-Z0-9\\_]+::set[a-zA-Z0-9_]+\(\)#'
+        - '#Call to an undefined method Magento\\Framework\\View\\Result\\Page::addBreadcrumb\(\)#'
+        - '#Call to an undefined method Magento\\Sales\\Api\\Data\\OrderItemInterface::isDummy\(\)#'
