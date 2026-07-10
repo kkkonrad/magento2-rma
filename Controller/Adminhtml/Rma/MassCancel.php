@@ -9,6 +9,7 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Ui\Component\MassAction\Filter;
 use Kkkonrad\Rma\Model\ResourceModel\Rma\CollectionFactory;
+use Psr\Log\LoggerInterface;
 
 class MassCancel extends Action
 {
@@ -18,7 +19,8 @@ class MassCancel extends Action
         Context $context,
         private readonly Filter $filter,
         private readonly CollectionFactory $collectionFactory,
-        private readonly RmaManagementInterface $rmaManagement
+        private readonly RmaManagementInterface $rmaManagement,
+        private readonly LoggerInterface $logger
     ) {
         parent::__construct($context);
     }
@@ -38,6 +40,8 @@ class MassCancel extends Action
                 $cancelled++;
             } catch (\Exception $e) {
                 $errors++;
+                // Fix R3-6: Log exact failure reason for each failed RMA
+                $this->logger->warning('MassCancel failed for RMA ID ' . (int) $rma->getRmaId() . ': ' . $e->getMessage());
             }
         }
 

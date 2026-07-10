@@ -158,7 +158,7 @@ class Config
             ScopeInterface::SCOPE_STORE,
             $storeId
         );
-        if (!$value) {
+        if ($value === null) {
             return ['complete'];
         }
         return array_filter(array_map('trim', explode(',', (string) $value)));

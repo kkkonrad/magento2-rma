@@ -16,7 +16,7 @@ use Kkkonrad\Rma\Model\Config;
 
 class UploadShippingLabel extends Action
 {
-    public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_edit';
+    public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_upload_label';
 
     public function __construct(
         Context $context,

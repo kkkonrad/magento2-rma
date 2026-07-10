@@ -29,7 +29,9 @@ class SendRmaStatusChangedEmail implements ObserverInterface
         $statusFrom = $observer->getData('status_from');
         $statusTo   = $observer->getData('status_to');
 
-        if (!$rma || !$this->config->isEnabled($rma->getStoreId())) {
+        $storeId = (int) $rma->getStoreId();
+
+        if (!$rma || !$this->config->isEnabled($storeId)) {
             return;
         }
 
@@ -42,18 +44,18 @@ class SendRmaStatusChangedEmail implements ObserverInterface
             $this->inlineTranslation->suspend();
 
             $transport = $this->transportBuilder
-                ->setTemplateIdentifier($this->config->getStatusChangedEmailTemplate($rma->getStoreId()))
+                ->setTemplateIdentifier($this->config->getStatusChangedEmailTemplate($storeId))
                 ->setTemplateOptions([
                     'area'  => \Magento\Framework\App\Area::AREA_FRONTEND,
-                    'store' => $rma->getStoreId(),
+                    'store' => $storeId,
                 ])
                 ->setTemplateVars([
                     'rma'         => $rma,
                     'status_from' => $statusFrom,
                     'status_to'   => $statusTo,
-                    'store'       => $this->storeManager->getStore($rma->getStoreId()),
+                    'store'       => $this->storeManager->getStore($storeId),
                 ])
-                ->setFromByScope($this->config->getEmailSender($rma->getStoreId()))
+                ->setFromByScope($this->config->getEmailSender($storeId))
                 ->addTo($rma->getCustomerEmail(), $rma->getCustomerName())
                 ->getTransport();
 

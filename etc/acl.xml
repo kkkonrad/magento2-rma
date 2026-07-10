@@ -7,6 +7,8 @@
                 <resource id="Kkkonrad_Rma::rma" title="RMA" sortOrder="85">
                     <resource id="Kkkonrad_Rma::rma_list" title="RMA List" sortOrder="10"/>
                     <resource id="Kkkonrad_Rma::rma_edit" title="View / Edit RMA" sortOrder="20"/>
+                    <!-- Fix R3-15: Separate permission for label upload — warehouse staff role -->
+                    <resource id="Kkkonrad_Rma::rma_upload_label" title="Upload Shipping Label" sortOrder="25"/>
                     <resource id="Kkkonrad_Rma::rma_create" title="Create RMA" sortOrder="30"/>
                     <resource id="Kkkonrad_Rma::rma_delete" title="Delete RMA" sortOrder="40"/>
                     <resource id="Kkkonrad_Rma::rma_change_status" title="Change RMA Status" sortOrder="50"/>

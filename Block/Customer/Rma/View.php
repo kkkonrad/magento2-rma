@@ -27,6 +27,7 @@ class View extends Template
         private readonly MessageCollectionFactory $messageCollectionFactory,
         private readonly HistoryCollectionFactory $historyCollectionFactory,
         private readonly AttachmentCollectionFactory $attachmentCollectionFactory,
+        private readonly Status $statusSource,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -122,7 +123,7 @@ class View extends Template
 
     public function getStatusLabel(string $status): string
     {
-        return (string) __(Status::getLabel($status));
+        return (string) __($this->statusSource->getLabel($status));
     }
 
     public function getStatusBadgeClass(string $status): string

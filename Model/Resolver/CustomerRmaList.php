@@ -22,7 +22,8 @@ class CustomerRmaList implements ResolverInterface
         private readonly GetCustomer $getCustomer,
         private readonly RmaRepositoryInterface $rmaRepository,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
-        private readonly SortOrderBuilder $sortOrderBuilder
+        private readonly SortOrderBuilder $sortOrderBuilder,
+        private readonly Status $statusSource
     ) {
     }
 
@@ -61,7 +62,7 @@ class CustomerRmaList implements ResolverInterface
                 'increment_id'      => (string) $rma->getIncrementId(),
                 'order_increment_id'=> (string) $rma->getOrderIncrementId(),
                 'status'            => (string) $rma->getStatus(),
-                'status_label'      => (string) __(Status::getLabel($rma->getStatus())),
+                'status_label'      => (string) __($this->statusSource->getLabel($rma->getStatus())),
                 'resolution_type'   => (string) $rma->getResolutionType(),
                 'created_at'        => (string) $rma->getCreatedAt(),
                 'updated_at'        => (string) $rma->getUpdatedAt(),

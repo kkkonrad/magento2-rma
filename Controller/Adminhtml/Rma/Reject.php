@@ -10,7 +10,7 @@ use Magento\Framework\Exception\LocalizedException;
 
 class Reject extends Action
 {
-    public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_edit';
+    public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_approve';
 
     public function __construct(
         Context $context,

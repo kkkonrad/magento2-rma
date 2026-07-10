@@ -5,8 +5,8 @@
         <job name="kkkonrad_rma_auto_cancel_expired"
              instance="Kkkonrad\Rma\Cron\AutoCancelExpiredRma"
              method="execute">
-            <!-- Run daily at 02:00 -->
-            <schedule>0 2 * * *</schedule>
+            <!-- Fix R3-14: Schedule configurable via Stores → Configuration → RMA → Automation -->
+            <config_path>kkkonrad_rma/automation/auto_cancel_cron_expr</config_path>
         </job>
     </group>
 </config>

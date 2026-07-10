@@ -29,7 +29,7 @@ class Status implements OptionSourceInterface
         return $options;
     }
 
-    public static function getLabel(string $status): string
+    public function getLabel(string $status): string
     {
         return self::LABELS[$status] ?? $status;
     }

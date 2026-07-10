@@ -15,12 +15,16 @@ class ListRma extends Template
 {
     protected $_template = 'Kkkonrad_Rma::customer/rma/list.phtml';
 
+    /** @var \Kkkonrad\Rma\Api\Data\RmaInterface[]|null — Fix R3-8: property cache */
+    private ?array $rmaListCache = null;
+
     public function __construct(
         Context $context,
         private readonly RmaRepositoryInterface $rmaRepository,
         private readonly CustomerSession $customerSession,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly SortOrderBuilder $sortOrderBuilder,
+        private readonly Status $statusSource,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -31,9 +35,13 @@ class ListRma extends Template
      */
     public function getRmaList(): array
     {
+        if ($this->rmaListCache !== null) {
+            return $this->rmaListCache;
+        }
+
         $customerId = (int) $this->customerSession->getCustomerId();
         if (!$customerId) {
-            return [];
+            return $this->rmaListCache = [];
         }
 
         $page = max(1, (int) $this->getRequest()->getParam('p', 1));
@@ -51,12 +59,12 @@ class ListRma extends Template
 
         $results = $this->rmaRepository->getListForCustomer($customerId, $searchCriteria);
 
-        return $results->getItems();
+        return $this->rmaListCache = array_values($results->getItems());
     }
 
     public function getStatusLabel(string $status): string
     {
-        return (string) __(Status::getLabel($status));
+        return (string) __($this->statusSource->getLabel($status));
     }
 
     public function getCreateUrl(): string

@@ -16,6 +16,9 @@ use Magento\Framework\View\Element\Template\Context;
 class PrintSlip extends Template
 {
     private ?RmaInterface $rma = null;
+    private ?array $items = null;
+    private ?array $reasons = null;
+    private ?array $conditions = null;
 
     public function __construct(
         Context $context,
@@ -51,32 +54,48 @@ class PrintSlip extends Template
 
     public function getItems(): array
     {
+        if ($this->items !== null) {
+            return $this->items;
+        }
+
         $rma = $this->getRma();
         if (!$rma) {
-            return [];
+            return $this->items = [];
         }
         $collection = $this->itemCollectionFactory->create();
         $collection->addFieldToFilter('rma_id', $rma->getRmaId());
-        return $collection->getItems();
+        return $this->items = array_values($collection->getItems());
     }
 
     public function getReasons(): array
     {
-        $collection = $this->reasonCollectionFactory->create();
-        $reasons = [];
-        foreach ($collection as $reason) {
-            $reasons[$reason->getReasonId()] = $reason->getLabel();
+        if ($this->reasons !== null) {
+            return $this->reasons;
         }
-        return $reasons;
+
+        $collection = $this->reasonCollectionFactory->create();
+        // Fix R3-4: Only show active reasons in print slip
+        $collection->addFieldToFilter('is_active', ['eq' => 1]);
+        $result = [];
+        foreach ($collection as $reason) {
+            $result[$reason->getReasonId()] = $reason->getLabel();
+        }
+        return $this->reasons = $result;
     }
 
     public function getConditions(): array
     {
-        $collection = $this->conditionCollectionFactory->create();
-        $conditions = [];
-        foreach ($collection as $condition) {
-            $conditions[$condition->getConditionId()] = $condition->getLabel();
+        if ($this->conditions !== null) {
+            return $this->conditions;
         }
-        return $conditions;
+
+        $collection = $this->conditionCollectionFactory->create();
+        // Fix R3-4: Only show active conditions in print slip
+        $collection->addFieldToFilter('is_active', ['eq' => 1]);
+        $result = [];
+        foreach ($collection as $condition) {
+            $result[$condition->getConditionId()] = $condition->getLabel();
+        }
+        return $this->conditions = $result;
     }
 }

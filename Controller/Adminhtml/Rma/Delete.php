@@ -21,16 +21,23 @@ class Delete extends Action
 
     public function execute(): \Magento\Framework\Controller\ResultInterface
     {
+        $resultRedirect = $this->resultRedirectFactory->create();
         $rmaId = (int) $this->getRequest()->getParam('rma_id');
+
+        if (!$rmaId) {
+            $this->messageManager->addErrorMessage(__('Invalid RMA ID.'));
+            return $resultRedirect->setPath('*/*/index');
+        }
 
         try {
             $this->rmaRepository->deleteById($rmaId);
             $this->messageManager->addSuccessMessage(__('RMA has been deleted.'));
         } catch (LocalizedException $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage(__('An error occurred while deleting the RMA.'));
         }
 
-        $resultRedirect = $this->resultRedirectFactory->create();
         return $resultRedirect->setPath('*/*/index');
     }
 }

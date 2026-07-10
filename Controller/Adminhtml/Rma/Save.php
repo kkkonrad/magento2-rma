@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Rma\Controller\Adminhtml\Rma;
 
+use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
@@ -45,6 +46,16 @@ class Save extends Action
             }
 
             if ($resolutionType !== null) {
+                // Fix R3-3: Validate against defined resolution type constants
+                $allowedTypes = [
+                    RmaInterface::RESOLUTION_REFUND,
+                    RmaInterface::RESOLUTION_EXCHANGE,
+                    RmaInterface::RESOLUTION_REPAIR,
+                    RmaInterface::RESOLUTION_VOUCHER,
+                ];
+                if (!in_array($resolutionType, $allowedTypes, true)) {
+                    throw new LocalizedException(__('Invalid resolution type: %1', $resolutionType));
+                }
                 $rma->setResolutionType($resolutionType);
             }
 

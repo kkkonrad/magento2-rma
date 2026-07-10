@@ -32,7 +32,8 @@ class CustomerRma implements ResolverInterface
         private readonly MessageCollectionFactory $messageCollectionFactory,
         private readonly HistoryCollectionFactory $historyCollectionFactory,
         private readonly AttachmentCollectionFactory $attachmentCollectionFactory,
-        private readonly StoreManagerInterface $storeManager
+        private readonly StoreManagerInterface $storeManager,
+        private readonly Status $statusSource
     ) {
     }
 
@@ -137,7 +138,7 @@ class CustomerRma implements ResolverInterface
             'order_id'           => (int) $rma->getOrderId(),
             'order_increment_id' => (string) $rma->getOrderIncrementId(),
             'status'             => (string) $rma->getStatus(),
-            'status_label'       => (string) __(Status::getLabel($rma->getStatus())),
+            'status_label'       => (string) __($this->statusSource->getLabel($rma->getStatus())),
             'resolution_type'    => (string) $rma->getResolutionType(),
             'comment'            => $rma->getComment() ? (string) $rma->getComment() : null,
             'created_at'         => (string) $rma->getCreatedAt(),

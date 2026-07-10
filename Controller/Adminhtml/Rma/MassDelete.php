@@ -8,6 +8,7 @@ use Kkkonrad\Rma\Model\ResourceModel\Rma\CollectionFactory;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Ui\Component\MassAction\Filter;
+use Psr\Log\LoggerInterface;
 
 class MassDelete extends Action
 {
@@ -17,7 +18,8 @@ class MassDelete extends Action
         Context $context,
         private readonly Filter $filter,
         private readonly CollectionFactory $collectionFactory,
-        private readonly RmaRepositoryInterface $rmaRepository
+        private readonly RmaRepositoryInterface $rmaRepository,
+        private readonly LoggerInterface $logger
     ) {
         parent::__construct($context);
     }
@@ -32,8 +34,9 @@ class MassDelete extends Action
             try {
                 $this->rmaRepository->deleteById((int) $rma->getRmaId());
                 $deleted++;
-            } catch (\Exception) {
+            } catch (\Exception $e) {
                 $errors++;
+                $this->logger->warning('MassDelete failed for RMA ID ' . (int) $rma->getRmaId() . ': ' . $e->getMessage());
             }
         }
 

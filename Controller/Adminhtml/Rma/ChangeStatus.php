@@ -22,9 +22,15 @@ class ChangeStatus extends Action
 
     public function execute(): \Magento\Framework\Controller\ResultInterface
     {
+        $resultRedirect = $this->resultRedirectFactory->create();
         $rmaId     = (int) $this->getRequest()->getParam('rma_id');
         $newStatus = (string) $this->getRequest()->getParam('status');
         $comment   = $this->getRequest()->getParam('comment');
+
+        if (!$rmaId || !$newStatus) {
+            $this->messageManager->addErrorMessage(__('Invalid parameters.'));
+            return $resultRedirect->setPath('*/*/index');
+        }
 
         try {
             $adminId = (int) $this->_auth->getUser()->getId();
@@ -36,7 +42,6 @@ class ChangeStatus extends Action
             $this->messageManager->addErrorMessage(__('An error occurred while updating the RMA status.'));
         }
 
-        $resultRedirect = $this->resultRedirectFactory->create();
         return $resultRedirect->setPath('*/*/edit', ['rma_id' => $rmaId]);
     }
 }

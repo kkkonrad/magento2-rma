@@ -29,6 +29,8 @@ class Approve extends Action
             $this->messageManager->addSuccessMessage(__('RMA has been approved.'));
         } catch (LocalizedException $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage(__('An error occurred while approving the RMA.'));
         }
 
         $resultRedirect = $this->resultRedirectFactory->create();
