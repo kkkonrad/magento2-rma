@@ -37,6 +37,8 @@ class StatusValidator
         ],
         RmaInterface::STATUS_ITEM_RECEIVED => [
             RmaInterface::STATUS_RESOLVED,
+            // Fix R8: Allow rejection after item is received (e.g. returned item was not eligible)
+            RmaInterface::STATUS_REJECTED,
         ],
         RmaInterface::STATUS_RESOLVED => [
             RmaInterface::STATUS_CLOSED,

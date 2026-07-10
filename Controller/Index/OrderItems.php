@@ -53,13 +53,20 @@ class OrderItems implements HttpGetActionInterface
                 if ($item->getParentItemId() || $item->isDummy()) {
                     continue;
                 }
+
+                $qtyOrdered  = (float) $item->getQtyOrdered();
+                $qtyRefunded = (float) $item->getQtyRefunded();
+                // Fix R9: Expose available qty so frontend can cap the return quantity correctly
+                $qtyAvailable = max(0, $qtyOrdered - $qtyRefunded);
+
                 $items[] = [
-                    'item_id'      => (int) $item->getItemId(),
-                    'name'         => $item->getName(),
-                    'sku'          => $item->getSku(),
-                    'qty_ordered'  => (float) $item->getQtyOrdered(),
-                    'qty_refunded' => (float) $item->getQtyRefunded(),
-                    'price'        => (float) $item->getPrice(),
+                    'item_id'       => (int) $item->getItemId(),
+                    'name'          => $item->getName(),
+                    'sku'           => $item->getSku(),
+                    'qty_ordered'   => $qtyOrdered,
+                    'qty_refunded'  => $qtyRefunded,
+                    'qty_available' => $qtyAvailable,
+                    'price'         => (float) $item->getPrice(),
                 ];
             }
 

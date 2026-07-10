@@ -59,11 +59,22 @@ class View extends Template
         return $this->rma;
     }
 
+    /** @var \Kkkonrad\Rma\Model\RmaMessage[]|null cached collection items — Fix R7 */
+    private ?array $messages = null;
+    /** @var \Kkkonrad\Rma\Model\RmaStatusHistory[]|null */
+    private ?array $statusHistory = null;
+    /** @var \Kkkonrad\Rma\Model\RmaAttachment[]|null */
+    private ?array $attachments = null;
+
     public function getMessages(): array
     {
+        if ($this->messages !== null) {
+            return $this->messages;
+        }
+
         $rma = $this->getRma();
         if (!$rma) {
-            return [];
+            return $this->messages = [];
         }
 
         $collection = $this->messageCollectionFactory->create();
@@ -71,34 +82,42 @@ class View extends Template
             ->addFieldToFilter('is_internal', ['eq' => 0]) // Customer-visible only
             ->setOrder('created_at', 'ASC');
 
-        return $collection->getItems();
+        return $this->messages = array_values($collection->getItems());
     }
 
     public function getStatusHistory(): array
     {
+        if ($this->statusHistory !== null) {
+            return $this->statusHistory;
+        }
+
         $rma = $this->getRma();
         if (!$rma) {
-            return [];
+            return $this->statusHistory = [];
         }
 
         $collection = $this->historyCollectionFactory->create();
         $collection->addFieldToFilter('rma_id', $rma->getRmaId())
             ->setOrder('created_at', 'ASC');
 
-        return $collection->getItems();
+        return $this->statusHistory = array_values($collection->getItems());
     }
 
     public function getAttachments(): array
     {
+        if ($this->attachments !== null) {
+            return $this->attachments;
+        }
+
         $rma = $this->getRma();
         if (!$rma) {
-            return [];
+            return $this->attachments = [];
         }
 
         $collection = $this->attachmentCollectionFactory->create();
         $collection->addFieldToFilter('rma_id', $rma->getRmaId());
 
-        return $collection->getItems();
+        return $this->attachments = array_values($collection->getItems());
     }
 
     public function getStatusLabel(string $status): string

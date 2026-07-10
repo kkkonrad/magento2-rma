@@ -5,6 +5,7 @@ namespace Kkkonrad\Rma\Controller\Adminhtml\Rma;
 
 use Kkkonrad\Rma\Api\Data\RmaItemInterfaceFactory;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
+use Kkkonrad\Rma\Model\Config;
 use Kkkonrad\Rma\Model\ResourceModel\RmaReason\CollectionFactory as ReasonCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaCondition\CollectionFactory as ConditionCollectionFactory;
 use Kkkonrad\Rma\Api\Data\RmaInterface;
@@ -23,7 +24,8 @@ class Create extends Action
         private readonly RmaManagementInterface $rmaManagement,
         private readonly RmaItemInterfaceFactory $rmaItemFactory,
         private readonly ReasonCollectionFactory $reasonCollectionFactory,
-        private readonly ConditionCollectionFactory $conditionCollectionFactory
+        private readonly ConditionCollectionFactory $conditionCollectionFactory,
+        private readonly Config $config
     ) {
         parent::__construct($context);
     }
@@ -42,9 +44,11 @@ class Create extends Action
 
         try {
             $order = $this->orderRepository->get($orderId);
-            
-            if ($order->getStatus() !== 'complete') {
-                throw new LocalizedException(__('Only completed orders can be returned.'));
+
+            // Fix R2: Use config-driven allowed statuses instead of hardcoded 'complete'
+            $allowedStatuses = $this->config->getAllowedOrderStatuses((int) $order->getStoreId());
+            if (!in_array($order->getStatus(), $allowedStatuses, true)) {
+                throw new LocalizedException(__('This order status does not allow a return request.'));
             }
 
             // Get first active reason and condition

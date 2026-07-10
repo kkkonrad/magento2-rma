@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Rma\Model\Resolver;
 
+use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\Data\RmaItemInterfaceFactory;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Magento\CustomerGraphQl\Model\Customer\GetCustomer;
@@ -95,7 +96,7 @@ class CreateCustomerRma implements ResolverInterface
             // Auto-advance to pending_review
             $this->rmaManagement->changeStatus(
                 $rma->getRmaId(),
-                'pending_review',
+                RmaInterface::STATUS_PENDING_REVIEW,
                 null,
                 'customer',
                 $customerId

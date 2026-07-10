@@ -150,6 +150,12 @@ class RmaManagement implements RmaManagementInterface
         ?string $authorName = null,
         bool $isInternal = false
     ): RmaMessageInterface {
+        // Fix R5: Enforce message length limit at service layer (not just controller/resolver)
+        $maxLength = 5000;
+        if (mb_strlen($message) > $maxLength) {
+            throw new LocalizedException(__('Message cannot exceed %1 characters.', $maxLength));
+        }
+
         // Verify the RMA exists
         $rma = $this->rmaRepository->getById($rmaId);
 

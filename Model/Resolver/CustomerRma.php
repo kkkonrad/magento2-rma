@@ -72,11 +72,15 @@ class CustomerRma implements ResolverInterface
         $items = [];
         foreach ($itemCollection as $item) {
             $items[] = [
-                'rma_item_id'   => (int) $item->getRmaItemId(),
+                'rma_item_id'   => (int) $item->getItemId(),
                 'order_item_id' => (int) $item->getOrderItemId(),
                 'qty'           => (float) $item->getQty(),
                 'reason_id'     => $item->getReasonId() ? (int) $item->getReasonId() : null,
                 'condition_id'  => $item->getConditionId() ? (int) $item->getConditionId() : null,
+                // Fix R1: Return product details stored at time of RMA creation
+                'product_name'  => $item->getProductName() ? (string) $item->getProductName() : null,
+                'product_sku'   => $item->getProductSku() ? (string) $item->getProductSku() : null,
+                'unit_price'    => $item->getUnitPrice() !== null ? (float) $item->getUnitPrice() : null,
             ];
         }
 

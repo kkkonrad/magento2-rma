@@ -102,9 +102,11 @@ class RmaRepository implements RmaRepositoryInterface
     public function getListForCustomer(int $customerId, SearchCriteriaInterface $searchCriteria): SearchResultsInterface
     {
         $collection = $this->collectionFactory->create();
-        // Enforce security: always filter by customer_id regardless of caller-provided criteria
-        $collection->addFieldToFilter('customer_id', ['eq' => $customerId]);
+        // Process caller-provided criteria first (sorting, pagination)
         $this->collectionProcessor->process($searchCriteria, $collection);
+        // Fix R3: Security filter applied AFTER collectionProcessor so it cannot be overridden
+        // by any customer_id filter injected via SearchCriteria from GraphQL/API
+        $collection->addFieldToFilter('customer_id', ['eq' => $customerId]);
 
         $searchResults = $this->searchResultsFactory->create();
         $searchResults->setSearchCriteria($searchCriteria);
