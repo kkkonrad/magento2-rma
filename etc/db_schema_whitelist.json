@@ -15,11 +15,13 @@
             "created_at": true,
             "updated_at": true,
             "resolved_at": true,
-            "shipping_label": true
+            "shipping_label": true,
+            "return_address_id": true
         },
         "constraint": {
             "PRIMARY": true,
-            "KKKONRAD_RMA_INCREMENT_ID": true
+            "KKKONRAD_RMA_INCREMENT_ID": true,
+            "KKKONRAD_RMA_RETURN_ADDRESS_ID_KKKONRAD_RMA_ADDRESS_ADDRESS_ID": true
         },
         "index": {
             "KKKONRAD_RMA_ORDER_ID": true,
@@ -140,6 +142,26 @@
         "index": {
             "KKKONRAD_RMA_CONDITION_SORT_ORDER": true,
             "KKKONRAD_RMA_CONDITION_IS_ACTIVE": true
+        }
+    },
+    "kkkonrad_rma_address": {
+        "column": {
+            "address_id": true,
+            "name": true,
+            "street": true,
+            "city": true,
+            "postcode": true,
+            "country_id": true,
+            "phone": true,
+            "is_default": true,
+            "is_active": true
+        },
+        "index": {
+            "KKKONRAD_RMA_ADDRESS_IS_DEFAULT": true,
+            "KKKONRAD_RMA_ADDRESS_IS_ACTIVE": true
+        },
+        "constraint": {
+            "PRIMARY": true
         }
     }
 }

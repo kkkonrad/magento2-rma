@@ -40,9 +40,15 @@ class RmaManagement implements RmaManagementInterface
         private readonly CreditmemoFactory $creditmemoFactory,
         private readonly EventManagerInterface $eventManager,
         private readonly MagentoDateTime $dateTime,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaAddress\CollectionFactory $rmaAddressCollectionFactory,
+        private readonly \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
+        private readonly \Kkkonrad\Rma\Model\RmaPolicyFactory $policyFactory,
+        private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaPolicy $policyResource
     ) {
     }
+
+
 
     /**
      * @inheritDoc
@@ -79,6 +85,17 @@ class RmaManagement implements RmaManagementInterface
             ->setComment($comment)
             ->setStatus(RmaInterface::STATUS_NEW)
             ->setStoreId((int) $order->getStoreId());
+
+        // Assign default/active return address if exists
+        $addressCollection = $this->rmaAddressCollectionFactory->create();
+        $addressCollection->addFieldToFilter('is_active', 1)
+            ->setOrder('is_default', 'DESC')
+            ->setPageSize(1);
+        $defaultAddress = $addressCollection->getFirstItem();
+        if ($defaultAddress->getId()) {
+            $rma->setReturnAddressId((int)$defaultAddress->getId());
+        }
+
 
         $this->rmaRepository->save($rma);
 
@@ -268,9 +285,11 @@ class RmaManagement implements RmaManagementInterface
         int $customerId
     ): bool {
         // Customer ownership check
-        if ((int) $order->getCustomerId() !== $customerId) {
+        $isGuestAllowed = ($customerId === 0 && $this->config->allowGuestRma());
+        if (!$isGuestAllowed && (int) $order->getCustomerId() !== $customerId) {
             return false;
         }
+
 
         // Order status check based on configuration
         $allowedStatuses = $this->config->getAllowedOrderStatuses((int) $order->getStoreId());
@@ -278,24 +297,60 @@ class RmaManagement implements RmaManagementInterface
             return false;
         }
 
-        // Fix 13: Use DateTimeImmutable instead of strtotime() for safer date arithmetic
-        $invoicedAt      = $order->getUpdatedAt() ?? $order->getCreatedAt();
-        $returnWindowDays = $this->config->getReturnWindowDays((int) $order->getStoreId());
-
+        $invoicedAt = $order->getUpdatedAt() ?? $order->getCreatedAt();
         try {
             $invoiceDate = new \DateTimeImmutable($invoicedAt);
-            $deadline    = $invoiceDate->modify('+' . $returnWindowDays . ' days');
             $now         = new \DateTimeImmutable();
         } catch (\Exception) {
             return false;
         }
 
-        if ($now > $deadline) {
-            return false;
+        $hasEligibleItem = false;
+        foreach ($order->getItems() as $orderItem) {
+            if ($orderItem->getParentItemId() || $orderItem->isDummy()) {
+                continue;
+            }
+
+            $returnWindowDays = $this->getReturnWindowDaysForProduct($orderItem);
+            $deadline = $invoiceDate->modify('+' . $returnWindowDays . ' days');
+            if ($now <= $deadline) {
+                $hasEligibleItem = true;
+                break;
+            }
         }
 
-        return true;
+        return $hasEligibleItem;
     }
+
+    /**
+     * Get return window days for a specific order item.
+     */
+    private function getReturnWindowDaysForProduct(\Magento\Sales\Api\Data\OrderItemInterface $orderItem): int
+    {
+        $storeId = (int)$orderItem->getStoreId();
+        try {
+            $product = $this->productRepository->getById((int)$orderItem->getProductId());
+            $policyIdAttr = $product->getCustomAttribute('kkkonrad_rma_policy_id');
+            $policyId = $policyIdAttr ? (int)$policyIdAttr->getValue() : null;
+            if ($policyId) {
+                /** @var \Kkkonrad\Rma\Model\RmaPolicy $policy */
+                $policy = $this->policyFactory->create();
+                $this->policyResource->load($policy, $policyId);
+                if ($policy->getPolicyId() && $policy->getIsActive()) {
+                    return max(
+                        $policy->getDaysRefund(),
+                        $policy->getDaysExchange(),
+                        $policy->getDaysRepair(),
+                        $policy->getDaysVoucher()
+                    );
+                }
+            }
+        } catch (\Exception) {
+            // Fallback to global
+        }
+        return $this->config->getReturnWindowDays($storeId);
+    }
+
 
     /**
      * Fix 6: Throw if a non-terminal RMA already exists for this order+customer combination.
@@ -368,6 +423,34 @@ class RmaManagement implements RmaManagementInterface
             );
         }
 
+        // Excluded SKU check — product cannot be returned if configured as excluded
+        $excludedSkus = $this->config->getExcludedSkus((int) $order->getStoreId());
+        if (!empty($excludedSkus) && in_array(strtoupper((string) $matchedOrderItem->getSku()), $excludedSkus, true)) {
+            throw new LocalizedException(
+                __('Product "%1" (SKU: %2) cannot be returned.', $matchedOrderItem->getName(), $matchedOrderItem->getSku())
+            );
+        }
+
+        // Return window validation per product policy
+        $invoicedAt = $order->getUpdatedAt() ?? $order->getCreatedAt();
+        try {
+            $invoiceDate = new \DateTimeImmutable($invoicedAt);
+            $returnWindowDays = $this->getReturnWindowDaysForProduct($matchedOrderItem);
+            $deadline = $invoiceDate->modify('+' . $returnWindowDays . ' days');
+            $now = new \DateTimeImmutable();
+            if ($now > $deadline) {
+                throw new LocalizedException(
+                    __('The return window for product "%1" has expired.', $matchedOrderItem->getName())
+                );
+            }
+        } catch (\Exception $e) {
+            if ($e instanceof LocalizedException) {
+                throw $e;
+            }
+            throw new LocalizedException(__('Failed to validate return window.'));
+        }
+
+
         /** @var RmaItem $rmaItem */
         $rmaItem = $this->rmaItemFactory->create();
         $rmaItem->setRmaId($rmaId)
@@ -378,6 +461,7 @@ class RmaManagement implements RmaManagementInterface
             ->setProductName($matchedOrderItem->getName())
             ->setProductSku($matchedOrderItem->getSku())
             ->setUnitPrice((float) $matchedOrderItem->getPrice());
+
 
         $this->rmaItemResource->save($rmaItem);
     }

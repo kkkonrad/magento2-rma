@@ -40,12 +40,27 @@ class RmaManagementTest extends TestCase
     private RmaManagement $rmaManagement;
 
     private RmaRepositoryInterface&MockObject $rmaRepository;
+    private RmaItemResource&MockObject $rmaItemResource;
+    private RmaMessageResource&MockObject $rmaMessageResource;
+    private RmaStatusHistoryResource&MockObject $rmaStatusHistoryResource;
     private StatusValidator&MockObject $statusValidator;
     private Config&MockObject $config;
     private RmaFactory&MockObject $rmaFactory;
+    private RmaItemFactory&MockObject $rmaItemFactory;
+    private RmaMessageFactory&MockObject $rmaMessageFactory;
+    private RmaStatusHistoryFactory&MockObject $rmaStatusHistoryFactory;
     private OrderRepositoryInterface&MockObject $orderRepository;
+    private CreditmemoManagementInterface&MockObject $creditmemoManagement;
+    private CreditmemoFactory&MockObject $creditmemoFactory;
     private EventManagerInterface&MockObject $eventManager;
     private LoggerInterface&MockObject $logger;
+    private \Kkkonrad\Rma\Model\ResourceModel\RmaItem\CollectionFactory&MockObject $rmaItemCollectionFactory;
+    private \Magento\Framework\Stdlib\DateTime\DateTime&MockObject $dateTime;
+    private \Kkkonrad\Rma\Model\ResourceModel\RmaAddress\CollectionFactory&MockObject $rmaAddressCollectionFactory;
+    private \Magento\Catalog\Api\ProductRepositoryInterface&MockObject $productRepository;
+    private \Kkkonrad\Rma\Model\RmaPolicyFactory&MockObject $policyFactory;
+    private \Kkkonrad\Rma\Model\ResourceModel\RmaPolicy&MockObject $policyResource;
+
 
     protected function setUp(): void
     {
@@ -64,10 +79,17 @@ class RmaManagementTest extends TestCase
         $this->creditmemoFactory    = $this->createMock(CreditmemoFactory::class);
         $this->eventManager         = $this->createMock(EventManagerInterface::class);
         $this->logger               = $this->createMock(LoggerInterface::class);
+        $this->rmaItemCollectionFactory = $this->createMock(\Kkkonrad\Rma\Model\ResourceModel\RmaItem\CollectionFactory::class);
+        $this->dateTime             = $this->createMock(\Magento\Framework\Stdlib\DateTime\DateTime::class);
+        $this->rmaAddressCollectionFactory = $this->createMock(\Kkkonrad\Rma\Model\ResourceModel\RmaAddress\CollectionFactory::class);
+        $this->productRepository    = $this->createMock(\Magento\Catalog\Api\ProductRepositoryInterface::class);
+        $this->policyFactory        = $this->createMock(\Kkkonrad\Rma\Model\RmaPolicyFactory::class);
+        $this->policyResource       = $this->createMock(\Kkkonrad\Rma\Model\ResourceModel\RmaPolicy::class);
 
         $this->rmaManagement = new RmaManagement(
             $this->rmaRepository,
             $this->rmaItemResource,
+            $this->rmaItemCollectionFactory,
             $this->rmaMessageResource,
             $this->rmaStatusHistoryResource,
             $this->statusValidator,
@@ -80,7 +102,12 @@ class RmaManagementTest extends TestCase
             $this->creditmemoManagement,
             $this->creditmemoFactory,
             $this->eventManager,
-            $this->logger
+            $this->dateTime,
+            $this->logger,
+            $this->rmaAddressCollectionFactory,
+            $this->productRepository,
+            $this->policyFactory,
+            $this->policyResource
         );
     }
 

@@ -13,6 +13,10 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 
+use Kkkonrad\Rma\Api\Data\RmaAddressInterface;
+use Kkkonrad\Rma\Model\RmaAddressFactory;
+use Kkkonrad\Rma\Model\ResourceModel\RmaAddress as RmaAddressResource;
+
 class PrintSlip extends Template
 {
     private ?RmaInterface $rma = null;
@@ -27,10 +31,13 @@ class PrintSlip extends Template
         private readonly ItemCollectionFactory $itemCollectionFactory,
         private readonly ReasonCollectionFactory $reasonCollectionFactory,
         private readonly ConditionCollectionFactory $conditionCollectionFactory,
+        private readonly RmaAddressFactory $addressFactory,
+        private readonly RmaAddressResource $addressResource,
         array $data = []
     ) {
         parent::__construct($context, $data);
     }
+
 
     public function getRma(): ?RmaInterface
     {
@@ -98,4 +105,16 @@ class PrintSlip extends Template
         }
         return $this->conditions = $result;
     }
+
+    public function getReturnAddress(): ?RmaAddressInterface
+    {
+        $rma = $this->getRma();
+        if (!$rma || !$rma->getReturnAddressId()) {
+            return null;
+        }
+        $address = $this->addressFactory->create();
+        $this->addressResource->load($address, $rma->getReturnAddressId());
+        return $address->getId() ? $address : null;
+    }
 }
+

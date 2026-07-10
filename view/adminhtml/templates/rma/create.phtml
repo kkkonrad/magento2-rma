@@ -1,0 +1,306 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Kkkonrad\Rma\Block\Adminhtml\Rma\Create $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+$reasons = $block->getReasons();
+$conditions = $block->getConditions();
+$resolutions = $block->getResolutionTypes();
+?>
+<div class="admin__scope-old" style="margin-top: 15px;">
+    <!-- Step 1: Search Order -->
+    <div class="fieldset-wrapper" id="order-search-section">
+        <div class="fieldset-wrapper-title">
+            <strong class="title">
+                <span><?= $escaper->escapeHtml(__('Step 1: Locate Order')) ?></span>
+            </strong>
+        </div>
+        <div class="admin__fieldset">
+            <div class="admin__field">
+                <label class="admin__field-label" for="search_increment_id">
+                    <span><?= $escaper->escapeHtml(__('Order Increment ID')) ?></span>
+                </label>
+                <div class="admin__field-control">
+                    <input type="text"
+                           id="search_increment_id"
+                           placeholder="e.g. 000000001"
+                           class="admin__control-text"
+                           style="width: 250px; margin-right: 10px;"/>
+                    <button type="button" id="search-order-btn" class="action-default primary">
+                        <span><?= $escaper->escapeHtml(__('Search Order')) ?></span>
+                    </button>
+                    <span id="search-loading" style="display: none; margin-left: 10px; font-weight: bold; color: #666;">
+                        <?= $escaper->escapeHtml(__('Searching...')) ?>
+                    </span>
+                </div>
+            </div>
+            <div id="search-error" style="color: #e22; font-weight: bold; margin-top: 10px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Step 2: Select Items & Submit -->
+    <div class="fieldset-wrapper" id="rma-items-section" style="display: none; margin-top: 25px;">
+        <div class="fieldset-wrapper-title">
+            <strong class="title">
+                <span><?= $escaper->escapeHtml(__('Step 2: Return Items & Options')) ?></span>
+            </strong>
+        </div>
+        <div class="admin__fieldset">
+            <!-- Customer Info -->
+            <div style="background: #fafafa; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                <p style="margin: 0 0 5px 0;"><strong><?= $escaper->escapeHtml(__('Customer Name:')) ?></strong> <span id="info-customer-name"></span></p>
+                <p style="margin: 0;"><strong><?= $escaper->escapeHtml(__('Customer Email:')) ?></strong> <span id="info-customer-email"></span></p>
+            </div>
+
+            <!-- Items Table -->
+            <div class="admin__table-wrapper" style="margin-bottom: 20px;">
+                <table class="data-grid" id="rma-items-table">
+                    <thead>
+                        <tr class="data-grid-headers">
+                            <th class="data-grid-th" style="width: 50px; text-align: center;"><?= $escaper->escapeHtml(__('Select')) ?></th>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('SKU')) ?></th>
+                            <th class="data-grid-th"><?= $escaper->escapeHtml(__('Product Name')) ?></th>
+                            <th class="data-grid-th" style="width: 100px;"><?= $escaper->escapeHtml(__('Qty Ordered')) ?></th>
+                            <th class="data-grid-th" style="width: 100px;"><?= $escaper->escapeHtml(__('Qty Returnable')) ?></th>
+                            <th class="data-grid-th" style="width: 100px;"><?= $escaper->escapeHtml(__('Qty to Return')) ?></th>
+                            <th class="data-grid-th" style="width: 180px;"><?= $escaper->escapeHtml(__('Reason')) ?></th>
+                            <th class="data-grid-th" style="width: 180px;"><?= $escaper->escapeHtml(__('Condition')) ?></th>
+                        </tr>
+                    </thead>
+                    <tbody id="items-container">
+                        <!-- Loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Resolution & Details -->
+            <div class="admin__field">
+                <label class="admin__field-label" for="resolution_type">
+                    <span><?= $escaper->escapeHtml(__('Desired Resolution')) ?></span> <span class="required">*</span>
+                </label>
+                <div class="admin__field-control">
+                    <select id="resolution_type" class="admin__control-select" style="width: 250px;">
+                        <option value=""><?= $escaper->escapeHtml(__('Select Resolution')) ?></option>
+                        <?php foreach ($resolutions as $res): ?>
+                            <option value="<?= $escaper->escapeHtmlAttr($res['value']) ?>"><?= $escaper->escapeHtml($res['label']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+
+            <div class="admin__field" style="margin-top: 15px;">
+                <label class="admin__field-label" for="comment">
+                    <span><?= $escaper->escapeHtml(__('Admin Comment')) ?></span>
+                </label>
+                <div class="admin__field-control">
+                    <textarea id="comment" class="admin__control-textarea" rows="4" style="width: 100%; max-width: 600px;"></textarea>
+                </div>
+            </div>
+
+            <div class="actions-line" style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #ddd;">
+                <button type="button" id="submit-rma-btn" class="action-default primary">
+                    <span><?= $escaper->escapeHtml(__('Submit Return Request')) ?></span>
+                </button>
+                <span id="submit-loading" style="display: none; margin-left: 10px; font-weight: bold; color: #666;">
+                    <?= $escaper->escapeHtml(__('Submitting...')) ?>
+                </span>
+                <div id="submit-error" style="color: #e22; font-weight: bold; margin-top: 10px; display: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+require(['jquery'], function ($) {
+    var searchUrl = '<?= $block->getSearchOrderUrl() ?>';
+    var saveUrl   = '<?= $block->getSaveUrl() ?>';
+    var orderData = null;
+
+    $('#search-order-btn').on('click', function () {
+        var incId = $('#search_increment_id').val().trim();
+        if (!incId) {
+            alert('<?= $escaper->escapeJs(__('Please enter an Order ID.')) ?>');
+            return;
+        }
+
+        $('#search-loading').show();
+        $('#search-error').hide();
+        $('#rma-items-section').hide();
+
+        $.ajax({
+            url: searchUrl,
+            data: { increment_id: incId },
+            type: 'GET',
+            dataType: 'json',
+            success: function (res) {
+                $('#search-loading').hide();
+                if (res.error) {
+                    $('#search-error').text(res.message).show();
+                } else {
+                    orderData = res;
+                    renderOrderData(res);
+                }
+            },
+            error: function () {
+                $('#search-loading').hide();
+                $('#search-error').text('<?= $escaper->escapeJs(__('An error occurred during search.')) ?>').show();
+            }
+        });
+    });
+
+    function renderOrderData(data) {
+        $('#info-customer-name').text(data.customer_name);
+        $('#info-customer-email').text(data.customer_email);
+
+        var container = $('#items-container').empty();
+        
+        if (data.items.length === 0) {
+            container.append('<tr><td colspan="8" style="text-align: center; padding: 15px; font-weight: bold; color: #666;"><?= $escaper->escapeJs(__('No returnable items found.')) ?></td></tr>');
+            return;
+        }
+
+        data.items.forEach(function (item) {
+            var isReturnable = item.qty_available > 0;
+            var tr = $('<tr class="data-grid-tr">');
+            
+            // Checkbox
+            var checkboxTd = $('<td class="data-grid-checkbox-cell" style="text-align: center;">');
+            if (isReturnable) {
+                checkboxTd.append('<input type="checkbox" class="item-selector" data-item-id="' + item.item_id + '"/>');
+            } else {
+                checkboxTd.append('<span class="disabled-checkbox" style="color: #ccc;">N/A</span>');
+            }
+            tr.append(checkboxTd);
+
+            // SKU
+            tr.append('<td style="font-family: monospace; font-size: 11px;">' + item.sku + '</td>');
+            // Name
+            tr.append('<td>' + item.name + '</td>');
+            // Qty Ordered
+            tr.append('<td>' + item.qty_ordered + '</td>');
+            // Qty Returnable
+            tr.append('<td class="qty-available">' + item.qty_available + '</td>');
+
+            // Qty to Return input
+            var qtyInputTd = $('<td>');
+            if (isReturnable) {
+                qtyInputTd.append('<input type="number" class="admin__control-text item-qty" min="1" max="' + item.qty_available + '" value="' + item.qty_available + '" style="width: 70px;" disabled/>');
+            } else {
+                qtyInputTd.append('-');
+            }
+            tr.append(qtyInputTd);
+
+            // Reason select
+            var reasonTd = $('<td>');
+            if (isReturnable) {
+                var rSelect = $('<select class="admin__control-select item-reason" disabled>');
+                rSelect.append('<option value=""><?= $escaper->escapeJs(__('Select...')) ?></option>');
+                <?php foreach ($reasons as $reason): ?>
+                    rSelect.append('<option value="<?= $reason['value'] ?>"><?= $escaper->escapeJs($reason['label']) ?></option>');
+                <?php endforeach; ?>
+                reasonTd.append(rSelect);
+            } else {
+                reasonTd.append('-');
+            }
+            tr.append(reasonTd);
+
+            // Condition select
+            var conditionTd = $('<td>');
+            if (isReturnable) {
+                var cSelect = $('<select class="admin__control-select item-condition" disabled>');
+                cSelect.append('<option value=""><?= $escaper->escapeJs(__('Select...')) ?></option>');
+                <?php foreach ($conditions as $cond): ?>
+                    cSelect.append('<option value="<?= $cond['value'] ?>"><?= $escaper->escapeJs($cond['label']) ?></option>');
+                <?php endforeach; ?>
+                conditionTd.append(cSelect);
+            } else {
+                conditionTd.append('-');
+            }
+            tr.append(conditionTd);
+
+            container.append(tr);
+        });
+
+        // Toggle form inputs on selection
+        container.on('change', '.item-selector', function () {
+            var tr = $(this).closest('tr');
+            var isChecked = $(this).is(':checked');
+            tr.find('.item-qty, .item-reason, .item-condition').prop('disabled', !isChecked);
+        });
+
+        $('#rma-items-section').show();
+    }
+
+    $('#submit-rma-btn').on('click', function () {
+        var selectedItems = [];
+        var hasError = false;
+
+        $('.item-selector:checked').each(function () {
+            var tr = $(this).closest('tr');
+            var itemId = $(this).data('item-id');
+            var qty = parseFloat(tr.find('.item-qty').val());
+            var maxQty = parseFloat(tr.find('.qty-available').text());
+            var reasonId = tr.find('.item-reason').val();
+            var conditionId = tr.find('.item-condition').val();
+
+            if (isNaN(qty) || qty <= 0 || qty > maxQty) {
+                alert('<?= $escaper->escapeJs(__('Invalid quantity selected.')) ?>');
+                hasError = true;
+                return false;
+            }
+
+            selectedItems.push({
+                order_item_id: itemId,
+                qty: qty,
+                reason_id: reasonId,
+                condition_id: conditionId
+            });
+        });
+
+        if (hasError) return;
+
+        if (selectedItems.length === 0) {
+            alert('<?= $escaper->escapeJs(__('Please select at least one item to return.')) ?>');
+            return;
+        }
+
+        var resolution = $('#resolution_type').val();
+        if (!resolution) {
+            alert('<?= $escaper->escapeJs(__('Please select a desired resolution.')) ?>');
+            return;
+        }
+
+        $('#submit-loading').show();
+        $('#submit-error').hide();
+        $('#submit-rma-btn').prop('disabled', true);
+
+        $.ajax({
+            url: saveUrl,
+            type: 'POST',
+            data: {
+                form_key: window.FORM_KEY,
+                order_id: orderData.order_id,
+                resolution_type: resolution,
+                comment: $('#comment').val(),
+                items: JSON.stringify(selectedItems)
+            },
+            dataType: 'json',
+            success: function (res) {
+                $('#submit-loading').hide();
+                if (res.success) {
+                    window.location.href = res.redirect_url;
+                } else {
+                    $('#submit-error').text(res.message).show();
+                    $('#submit-rma-btn').prop('disabled', false);
+                }
+            },
+            error: function () {
+                $('#submit-loading').hide();
+                $('#submit-error').text('<?= $escaper->escapeJs(__('An error occurred during submission.')) ?>').show();
+                $('#submit-rma-btn').prop('disabled', false);
+            }
+        });
+    });
+});
+</script>

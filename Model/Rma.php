@@ -168,4 +168,16 @@ class Rma extends AbstractModel implements RmaInterface
     {
         return $this->setData(self::SHIPPING_LABEL, $shippingLabel);
     }
+
+    public function getReturnAddressId(): ?int
+    {
+        $id = $this->getData(self::RETURN_ADDRESS_ID);
+        return $id !== null ? (int)$id : null;
+    }
+
+    public function setReturnAddressId(?int $returnAddressId): self
+    {
+        return $this->setData(self::RETURN_ADDRESS_ID, $returnAddressId);
+    }
 }
+

@@ -1,0 +1,15 @@
+<?php
+/** @var \Kkkonrad\Rma\Block\CustomHtml $block */
+$customCss = $block->getCustomCss();
+$customJs = $block->getCustomJs();
+?>
+<?php if ($customCss): ?>
+    <style>
+        <?= $customCss ?>
+    </style>
+<?php endif; ?>
+<?php if ($customJs): ?>
+    <script>
+        <?= $customJs ?>
+    </script>
+<?php endif; ?>

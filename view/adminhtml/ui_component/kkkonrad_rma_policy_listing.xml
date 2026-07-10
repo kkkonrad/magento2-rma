@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">kkkonrad_rma_policy_listing.kkkonrad_rma_policy_listing_data_source</item>
+        </item>
+    </argument>
+
+    <settings>
+        <buttons>
+            <button name="add">
+                <url path="*/*/new"/>
+                <class>primary</class>
+                <label translate="true">Add New Policy</label>
+            </button>
+        </buttons>
+        <spinner>kkkonrad_rma_policy_columns</spinner>
+        <deps>
+            <dep>kkkonrad_rma_policy_listing.kkkonrad_rma_policy_listing_data_source</dep>
+        </deps>
+    </settings>
+
+    <dataSource name="kkkonrad_rma_policy_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">policy_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Kkkonrad_Rma::policies_manage</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider"
+                      name="kkkonrad_rma_policy_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>policy_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filterSearch name="fulltext"/>
+        <filters name="listing_filters">
+            <filterInput name="name" provider="${ $.parentName }">
+                <settings>
+                    <label translate="true">Policy Name</label>
+                    <dataScope>name</dataScope>
+                </settings>
+            </filterInput>
+        </filters>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+
+    <columns name="kkkonrad_rma_policy_columns">
+        <settings>
+            <editorConfig>
+                <param name="selectProvider" xsi:type="string">kkkonrad_rma_policy_listing.kkkonrad_rma_policy_listing.kkkonrad_rma_policy_columns.ids</param>
+                <param name="enabled" xsi:type="boolean">false</param>
+                <param name="indexField" xsi:type="string">policy_id</param>
+            </editorConfig>
+            <childDefaults>
+                <param name="fieldAction" xsi:type="array">
+                    <item name="provider" xsi:type="string">kkkonrad_rma_policy_listing.kkkonrad_rma_policy_listing.kkkonrad_rma_policy_columns_editor</item>
+                    <item name="target" xsi:type="string">startEdit</item>
+                    <item name="params" xsi:type="array">
+                        <item name="0" xsi:type="string">${ $.$data.rowIndex }</item>
+                        <item name="1" xsi:type="boolean">true</item>
+                    </item>
+                </param>
+            </childDefaults>
+        </settings>
+
+        <selectionsColumn name="ids">
+            <settings>
+                <indexField>policy_id</indexField>
+            </settings>
+        </selectionsColumn>
+
+        <column name="policy_id">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">ID</label>
+                <sorting>asc</sorting>
+            </settings>
+        </column>
+
+        <column name="name">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Policy Name</label>
+            </settings>
+        </column>
+
+        <column name="days_refund">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Days for Refund</label>
+            </settings>
+        </column>
+
+        <column name="days_exchange">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Days for Exchange</label>
+            </settings>
+        </column>
+
+        <column name="days_repair">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Days for Repair</label>
+            </settings>
+        </column>
+
+        <column name="days_voucher">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Days for Voucher</label>
+            </settings>
+        </column>
+
+        <column name="is_active" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Is Active</label>
+            </settings>
+        </column>
+
+        <actionsColumn name="actions" class="Kkkonrad\Rma\Ui\Component\Listing\Column\PolicyActions">
+            <settings>
+                <indexField>policy_id</indexField>
+                <label translate="true">Actions</label>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

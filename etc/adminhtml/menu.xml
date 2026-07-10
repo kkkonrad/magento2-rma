@@ -32,5 +32,22 @@
              parent="Kkkonrad_Rma::rma_menu"
              action="kkkonrad_rma/condition/index"
              resource="Kkkonrad_Rma::conditions_manage"/>
+
+        <add id="Kkkonrad_Rma::rma_addresses"
+             title="Return Addresses"
+             module="Kkkonrad_Rma"
+             sortOrder="40"
+             parent="Kkkonrad_Rma::rma_menu"
+             action="kkkonrad_rma/address/index"
+             resource="Kkkonrad_Rma::addresses_manage"/>
+
+        <add id="Kkkonrad_Rma::rma_policies"
+             title="Return Policies"
+             module="Kkkonrad_Rma"
+             sortOrder="50"
+             parent="Kkkonrad_Rma::rma_menu"
+             action="kkkonrad_rma/policy/index"
+             resource="Kkkonrad_Rma::policies_manage"/>
     </menu>
+
 </config>

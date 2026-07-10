@@ -5,10 +5,12 @@ namespace Kkkonrad\Rma\Block\Customer\Rma;
 
 use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
+use Kkkonrad\Rma\Model\Config;
 use Kkkonrad\Rma\Model\ResourceModel\RmaAttachment\CollectionFactory as AttachmentCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaMessage\CollectionFactory as MessageCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaStatusHistory\CollectionFactory as HistoryCollectionFactory;
 use Kkkonrad\Rma\Model\Source\Status;
+use Kkkonrad\Rma\Model\StatusValidator;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Template;
@@ -28,6 +30,8 @@ class View extends Template
         private readonly HistoryCollectionFactory $historyCollectionFactory,
         private readonly AttachmentCollectionFactory $attachmentCollectionFactory,
         private readonly Status $statusSource,
+        private readonly Config $config,
+        private readonly StatusValidator $statusValidator,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -145,6 +149,27 @@ class View extends Template
     public function getAddMessageUrl(): string
     {
         return $this->getUrl('rma/index/addMessage');
+    }
+
+    public function getCancelUrl(): string
+    {
+        return $this->getUrl('rma/index/cancel');
+    }
+
+    /**
+     * Whether the customer can cancel this specific RMA.
+     * Requires: config enabled + status is not already terminal.
+     */
+    public function canCustomerCancel(): bool
+    {
+        $rma = $this->getRma();
+        if (!$rma) {
+            return false;
+        }
+        if (!$this->config->canCustomerCancelRma((int) $rma->getStoreId())) {
+            return false;
+        }
+        return !$this->statusValidator->isTerminalStatus($rma->getStatus());
     }
 
     public function getMediaUrl(string $filePath): string

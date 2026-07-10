@@ -8,7 +8,14 @@
                 <return_window_days>30</return_window_days>
                 <max_file_size_mb>5</max_file_size_mb>
                 <allowed_file_extensions>jpg,jpeg,png,gif,pdf,mp4</allowed_file_extensions>
+                <customers_can_cancel_rma>0</customers_can_cancel_rma>
+                <excluded_skus></excluded_skus>
+                <custom_css></custom_css>
+                <custom_js></custom_js>
+                <allow_guest_rma>0</allow_guest_rma>
             </general>
+
+
             <email>
                 <sender>general</sender>
                 <created_template>kkkonrad_rma_email_rma_created</created_template>

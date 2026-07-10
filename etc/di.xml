@@ -19,6 +19,11 @@
                 type="Kkkonrad\Rma\Model\RmaReason"/>
     <preference for="Kkkonrad\Rma\Api\Data\RmaConditionInterface"
                 type="Kkkonrad\Rma\Model\RmaCondition"/>
+    <preference for="Kkkonrad\Rma\Api\Data\RmaAddressInterface"
+                type="Kkkonrad\Rma\Model\RmaAddress"/>
+    <preference for="Kkkonrad\Rma\Api\Data\RmaPolicyInterface"
+                type="Kkkonrad\Rma\Model\RmaPolicy"/>
+
 
     <preference for="Kkkonrad\Rma\Api\RmaRepositoryInterface"
                 type="Kkkonrad\Rma\Model\RmaRepository"/>
@@ -73,6 +78,23 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="Kkkonrad\Rma\Model\ResourceModel\RmaAddress\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">kkkonrad_rma_address</argument>
+            <argument name="resourceModel" xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaAddress</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Kkkonrad\Rma\Model\ResourceModel\RmaPolicy\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">kkkonrad_rma_policy</argument>
+            <argument name="resourceModel" xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaPolicy</argument>
+        </arguments>
+    </virtualType>
+
+
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
             <argument name="collections" xsi:type="array">
@@ -82,8 +104,13 @@
                       xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaReason\Grid\Collection</item>
                 <item name="kkkonrad_rma_condition_listing_data_source"
                       xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaCondition\Grid\Collection</item>
+                <item name="kkkonrad_rma_address_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaAddress\Grid\Collection</item>
+                <item name="kkkonrad_rma_policy_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaPolicy\Grid\Collection</item>
             </argument>
         </arguments>
     </type>
+
 
 </config>

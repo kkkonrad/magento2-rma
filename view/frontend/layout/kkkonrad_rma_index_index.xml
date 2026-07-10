@@ -7,6 +7,10 @@
             <block class="Kkkonrad\Rma\Block\Customer\Rma\ListRma"
                    name="kkkonrad_rma_list"
                    template="Kkkonrad_Rma::customer/rma/list.phtml"/>
+            <block class="Kkkonrad\Rma\Block\CustomHtml"
+                   name="kkkonrad_rma_custom_html"
+                   template="Kkkonrad_Rma::custom_css_js.phtml"/>
         </referenceContainer>
     </body>
+
 </page>

@@ -19,7 +19,14 @@
                     <resource id="Kkkonrad_Rma::conditions" title="Item Conditions" sortOrder="80">
                         <resource id="Kkkonrad_Rma::conditions_manage" title="Manage Item Conditions" sortOrder="10"/>
                     </resource>
+                    <resource id="Kkkonrad_Rma::addresses" title="Return Addresses" sortOrder="82">
+                        <resource id="Kkkonrad_Rma::addresses_manage" title="Manage Return Addresses" sortOrder="10"/>
+                    </resource>
+                    <resource id="Kkkonrad_Rma::policies" title="Return Policies" sortOrder="84">
+                        <resource id="Kkkonrad_Rma::policies_manage" title="Manage Return Policies" sortOrder="10"/>
+                    </resource>
                     <resource id="Kkkonrad_Rma::config" title="RMA Configuration" sortOrder="90"/>
+
                 </resource>
             </resource>
         </resources>

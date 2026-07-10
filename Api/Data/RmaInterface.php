@@ -24,6 +24,8 @@ interface RmaInterface
     public const UPDATED_AT      = 'updated_at';
     public const RESOLVED_AT     = 'resolved_at';
     public const SHIPPING_LABEL  = 'shipping_label';
+    public const RETURN_ADDRESS_ID = 'return_address_id';
+
 
     // Status constants
     public const STATUS_NEW             = 'new';
@@ -86,4 +88,8 @@ interface RmaInterface
 
     public function getShippingLabel(): ?string;
     public function setShippingLabel(?string $shippingLabel): self;
+
+    public function getReturnAddressId(): ?int;
+    public function setReturnAddressId(?int $returnAddressId): self;
 }
+

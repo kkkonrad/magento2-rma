@@ -43,7 +43,39 @@
         <settings>
             <sticky>true</sticky>
         </settings>
-        <bookmark name="bookmarks"/>
+        <bookmark name="bookmarks">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="views" xsi:type="array">
+                        <item name="pending" xsi:type="array">
+                            <item name="name" xsi:type="string" translate="true">Pending Review</item>
+                            <item name="data" xsi:type="array">
+                                <item name="filters" xsi:type="array">
+                                    <item name="status" xsi:type="string">pending_review</item>
+                                </item>
+                            </item>
+                        </item>
+                        <item name="approved" xsi:type="array">
+                            <item name="name" xsi:type="string" translate="true">Approved</item>
+                            <item name="data" xsi:type="array">
+                                <item name="filters" xsi:type="array">
+                                    <item name="status" xsi:type="string">approved</item>
+                                </item>
+                            </item>
+                        </item>
+                        <item name="cancelled" xsi:type="array">
+                            <item name="name" xsi:type="string" translate="true">Cancelled</item>
+                            <item name="data" xsi:type="array">
+                                <item name="filters" xsi:type="array">
+                                    <item name="status" xsi:type="string">cancelled</item>
+                                </item>
+                            </item>
+                        </item>
+                    </item>
+                </item>
+            </argument>
+        </bookmark>
+
         <columnsControls name="columns_controls"/>
         <filterSearch name="fulltext"/>
         <filters name="listing_filters">
@@ -83,6 +115,12 @@
                 </settings>
             </filterRange>
         </filters>
+        <!-- CSV / XML export button -->
+        <exportButton name="export_button">
+            <settings>
+                <selectProvider>kkkonrad_rma_listing.kkkonrad_rma_listing.kkkonrad_rma_columns.ids</selectProvider>
+            </settings>
+        </exportButton>
         <massaction name="listing_massaction">
             <action name="approve">
                 <settings>

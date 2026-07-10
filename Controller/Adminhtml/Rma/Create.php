@@ -25,7 +25,8 @@ class Create extends Action
         private readonly RmaItemInterfaceFactory $rmaItemFactory,
         private readonly ReasonCollectionFactory $reasonCollectionFactory,
         private readonly ConditionCollectionFactory $conditionCollectionFactory,
-        private readonly Config $config
+        private readonly Config $config,
+        private readonly \Magento\Framework\View\Result\PageFactory $resultPageFactory
     ) {
         parent::__construct($context);
     }
@@ -36,11 +37,12 @@ class Create extends Action
         $orderId = (int)$this->getRequest()->getParam('order_id');
 
         if (!$orderId) {
-            $this->messageManager->addNoticeMessage(
-                __('To create a return request, please view a completed order in Sales > Orders and click "Create RMA".')
-            );
-            return $resultRedirect->setPath('sales/order/index');
+            $resultPage = $this->resultPageFactory->create();
+            $resultPage->setActiveMenu('Kkkonrad_Rma::rma_menu');
+            $resultPage->getConfig()->getTitle()->prepend(__('Create Return Request (RMA)'));
+            return $resultPage;
         }
+
 
         try {
             $order = $this->orderRepository->get($orderId);

@@ -136,16 +136,35 @@ $conditions = $block->getConditions();
             <div style="font-size: 11px; font-weight: bold; color: #6b7280; text-transform: uppercase; margin-bottom: 6px;">
                 <?= $escaper->escapeHtml(__('Return To:')) ?>
             </div>
-            <div style="font-size: 14px; font-weight: bold; color: #111111; margin-bottom: 4px;">
-                <?= $escaper->escapeHtml(__('Warehouse Returns Dept.')) ?>
-            </div>
-            <div style="font-size: 13px; color: #333333; line-height: 1.4;">
-                <?= $escaper->escapeHtml(__('RMA ID: ')) ?><strong>#<?= $escaper->escapeHtml($rma->getIncrementId()) ?></strong><br/>
-                <?= $escaper->escapeHtml(__('ul. Magazynowa 14A')) ?><br/>
-                <?= $escaper->escapeHtml(__('00-001 Warszawa, Polska')) ?>
-            </div>
+            <?php
+            $returnAddress = $block->getReturnAddress();
+            if ($returnAddress):
+            ?>
+                <div style="font-size: 14px; font-weight: bold; color: #111111; margin-bottom: 4px;">
+                    <?= $escaper->escapeHtml($returnAddress->getName()) ?>
+                </div>
+                <div style="font-size: 13px; color: #333333; line-height: 1.4;">
+                    <?= $escaper->escapeHtml(__('RMA ID: ')) ?><strong>#<?= $escaper->escapeHtml($rma->getIncrementId()) ?></strong><br/>
+                    <?= nl2br($escaper->escapeHtml($returnAddress->getStreet())) ?><br/>
+                    <?= $escaper->escapeHtml($returnAddress->getPostcode()) ?> <?= $escaper->escapeHtml($returnAddress->getCity()) ?><br/>
+                    <?= $escaper->escapeHtml($returnAddress->getCountryId()) ?>
+                    <?php if ($returnAddress->getPhone()): ?>
+                        <br/><?= $escaper->escapeHtml(__('Phone: %1', $returnAddress->getPhone())) ?>
+                    <?php endif; ?>
+                </div>
+            <?php else: ?>
+                <div style="font-size: 14px; font-weight: bold; color: #111111; margin-bottom: 4px;">
+                    <?= $escaper->escapeHtml(__('Warehouse Returns Dept.')) ?>
+                </div>
+                <div style="font-size: 13px; color: #333333; line-height: 1.4;">
+                    <?= $escaper->escapeHtml(__('RMA ID: ')) ?><strong>#<?= $escaper->escapeHtml($rma->getIncrementId()) ?></strong><br/>
+                    <?= $escaper->escapeHtml(__('ul. Magazynowa 14A')) ?><br/>
+                    <?= $escaper->escapeHtml(__('00-001 Warszawa, Polska')) ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
+
 </div>
 
 <script>

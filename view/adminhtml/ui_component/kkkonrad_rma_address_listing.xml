@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">kkkonrad_rma_address_listing.kkkonrad_rma_address_listing_data_source</item>
+        </item>
+    </argument>
+
+    <settings>
+        <buttons>
+            <button name="add">
+                <url path="*/*/new"/>
+                <class>primary</class>
+                <label translate="true">Add New Address</label>
+            </button>
+        </buttons>
+        <spinner>kkkonrad_rma_address_columns</spinner>
+        <deps>
+            <dep>kkkonrad_rma_address_listing.kkkonrad_rma_address_listing_data_source</dep>
+        </deps>
+    </settings>
+
+    <dataSource name="kkkonrad_rma_address_listing_data_source" component="Magento_Ui/js/grid/provider">
+        <settings>
+            <storageConfig>
+                <param name="indexField" xsi:type="string">address_id</param>
+            </storageConfig>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+        <aclResource>Kkkonrad_Rma::addresses_manage</aclResource>
+        <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider"
+                      name="kkkonrad_rma_address_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>address_id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+
+    <listingToolbar name="listing_top">
+        <settings>
+            <sticky>true</sticky>
+        </settings>
+        <bookmark name="bookmarks"/>
+        <columnsControls name="columns_controls"/>
+        <filterSearch name="fulltext"/>
+        <filters name="listing_filters">
+            <filterInput name="name" provider="${ $.parentName }">
+                <settings>
+                    <label translate="true">Address Name</label>
+                    <dataScope>name</dataScope>
+                </settings>
+            </filterInput>
+            <filterInput name="city" provider="${ $.parentName }">
+                <settings>
+                    <label translate="true">City</label>
+                    <dataScope>city</dataScope>
+                </settings>
+            </filterInput>
+        </filters>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+
+    <columns name="kkkonrad_rma_address_columns">
+        <settings>
+            <editorConfig>
+                <param name="selectProvider" xsi:type="string">kkkonrad_rma_address_listing.kkkonrad_rma_address_listing.kkkonrad_rma_address_columns.ids</param>
+                <param name="enabled" xsi:type="boolean">false</param>
+                <param name="indexField" xsi:type="string">address_id</param>
+            </editorConfig>
+            <childDefaults>
+                <param name="fieldAction" xsi:type="array">
+                    <item name="provider" xsi:type="string">kkkonrad_rma_address_listing.kkkonrad_rma_address_listing.kkkonrad_rma_address_columns_editor</item>
+                    <item name="target" xsi:type="string">startEdit</item>
+                    <item name="params" xsi:type="array">
+                        <item name="0" xsi:type="string">${ $.$data.rowIndex }</item>
+                        <item name="1" xsi:type="boolean">true</item>
+                    </item>
+                </param>
+            </childDefaults>
+        </settings>
+
+        <selectionsColumn name="ids">
+            <settings>
+                <indexField>address_id</indexField>
+            </settings>
+        </selectionsColumn>
+
+        <column name="address_id">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">ID</label>
+                <sorting>asc</sorting>
+            </settings>
+        </column>
+
+        <column name="name">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Name / Label</label>
+            </settings>
+        </column>
+
+        <column name="street">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Street</label>
+            </settings>
+        </column>
+
+        <column name="city">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">City</label>
+            </settings>
+        </column>
+
+        <column name="postcode">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Postcode</label>
+            </settings>
+        </column>
+
+        <column name="country_id">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Country ID</label>
+            </settings>
+        </column>
+
+        <column name="phone">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Phone</label>
+            </settings>
+        </column>
+
+        <column name="is_default" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Is Default</label>
+            </settings>
+        </column>
+
+        <column name="is_active" component="Magento_Ui/js/grid/columns/select">
+            <settings>
+                <options class="Magento\Config\Model\Config\Source\Yesno"/>
+                <filter>select</filter>
+                <dataType>select</dataType>
+                <label translate="true">Is Active</label>
+            </settings>
+        </column>
+
+        <actionsColumn name="actions" class="Kkkonrad\Rma\Ui\Component\Listing\Column\AddressActions">
+            <settings>
+                <indexField>address_id</indexField>
+                <label translate="true">Actions</label>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

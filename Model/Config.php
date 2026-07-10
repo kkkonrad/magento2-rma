@@ -21,6 +21,13 @@ class Config
     public const XML_PATH_EMAIL_ADMIN_TEMPLATE        = 'kkkonrad_rma/email/admin_notification_template';
     public const XML_PATH_EMAIL_MESSAGE_ADDED_TEMPLATE = 'kkkonrad_rma/email/message_added_template';
     public const XML_PATH_ALLOWED_ORDER_STATUSES      = 'kkkonrad_rma/general/allowed_order_statuses';
+    public const XML_PATH_CUSTOMERS_CAN_CANCEL_RMA    = 'kkkonrad_rma/general/customers_can_cancel_rma';
+    public const XML_PATH_EXCLUDED_SKUS               = 'kkkonrad_rma/general/excluded_skus';
+    public const XML_PATH_CUSTOM_CSS                  = 'kkkonrad_rma/general/custom_css';
+    public const XML_PATH_CUSTOM_JS                   = 'kkkonrad_rma/general/custom_js';
+    public const XML_PATH_ALLOW_GUEST_RMA            = 'kkkonrad_rma/general/allow_guest_rma';
+
+
 
     public function __construct(
         private readonly ScopeConfigInterface $scopeConfig
@@ -163,4 +170,75 @@ class Config
         }
         return array_filter(array_map('trim', explode(',', (string) $value)));
     }
+
+    /**
+     * Whether customers are allowed to cancel their own RMA requests.
+     */
+    public function canCustomerCancelRma(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_CUSTOMERS_CAN_CANCEL_RMA,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Returns the list of product SKUs excluded from RMA (uppercase, trimmed).
+     *
+     * @return string[]
+     */
+    public function getExcludedSkus(?int $storeId = null): array
+    {
+        $value = $this->scopeConfig->getValue(
+            self::XML_PATH_EXCLUDED_SKUS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+        if (!$value) {
+            return [];
+        }
+        return array_filter(array_map(
+            static fn(string $sku) => strtoupper(trim($sku)),
+            explode(',', (string) $value)
+        ));
+    }
+
+    /**
+     * Get custom CSS.
+     */
+    public function getCustomCss(?int $storeId = null): string
+    {
+        return (string)$this->scopeConfig->getValue(
+            self::XML_PATH_CUSTOM_CSS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Get custom JS.
+     */
+    public function getCustomJs(?int $storeId = null): string
+    {
+        return (string)$this->scopeConfig->getValue(
+            self::XML_PATH_CUSTOM_JS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Whether guest RMA is allowed.
+     */
+    public function allowGuestRma(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_ALLOW_GUEST_RMA,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
 }
+
+

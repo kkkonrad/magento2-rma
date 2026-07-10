@@ -35,7 +35,36 @@
                     <comment>Select order statuses for which customer can request a return. Leave blank to allow complete orders only.</comment>
                     <source_model>Magento\Sales\Model\Config\Source\Order\Status</source_model>
                 </field>
+                <!-- Allow customer to cancel their own RMA request -->
+                <field id="customers_can_cancel_rma" translate="label comment" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allow Customers to Cancel Their RMA</label>
+                    <comment>When enabled, customers can cancel their own return request from the account page (only non-terminal statuses).</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <!-- Products excluded from RMA by SKU -->
+                <field id="excluded_skus" translate="label comment" type="textarea" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Excluded Product SKUs</label>
+                    <comment>Comma-separated list of product SKUs that cannot be returned (e.g. GIFT-CARD,DOWNLOAD-123). Leave empty for no exclusions.</comment>
+                </field>
+                <!-- Custom CSS for frontend customization -->
+                <field id="custom_css" translate="label comment" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom CSS</label>
+                    <comment>Natively injected CSS styles on all customer-facing RMA pages.</comment>
+                </field>
+                <!-- Custom JS for frontend scripts (analytics/custom actions) -->
+                <field id="custom_js" translate="label comment" type="textarea" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom JavaScript</label>
+                    <comment>Natively injected script/code on all customer-facing RMA pages.</comment>
+                </field>
+                <!-- Allow Guest RMA returns -->
+                <field id="allow_guest_rma" translate="label comment" type="select" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Allow Guest Returns (RMA)</label>
+                    <comment>Enable to allow guest checkout orders to request and manage returns without logging in.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
+
+
 
             <group id="email" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Email Notifications</label>

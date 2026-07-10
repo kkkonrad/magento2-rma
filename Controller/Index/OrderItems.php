@@ -22,7 +22,11 @@ class OrderItems implements HttpGetActionInterface
         private readonly CustomerSession $customerSession,
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly RmaManagementInterface $rmaManagement,
-        private readonly RequestInterface $request
+        private readonly RequestInterface $request,
+        private readonly \Kkkonrad\Rma\Model\Config $config,
+        private readonly \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
+        private readonly \Kkkonrad\Rma\Model\RmaPolicyFactory $policyFactory,
+        private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaPolicy $policyResource
     ) {
     }
 
@@ -30,27 +34,41 @@ class OrderItems implements HttpGetActionInterface
     {
         $result = $this->resultJsonFactory->create();
 
-        if (!$this->customerSession->isLoggedIn()) {
-            return $result->setData(['error' => true, 'message' => 'Please log in.']);
+        $orderId = (int) $this->request->getParam('order_id');
+        $customerId = (int) $this->customerSession->getCustomerId();
+
+        $isAuthorized = false;
+        if ($this->customerSession->isLoggedIn()) {
+            $isAuthorized = true;
+        } elseif ($this->config->allowGuestRma() && (int)$this->customerSession->getGuestRmaOrderId() === $orderId) {
+            $isAuthorized = true;
         }
 
-        $orderId    = (int) $this->request->getParam('order_id');
-        $customerId = (int) $this->customerSession->getCustomerId();
+        if (!$isAuthorized) {
+            return $result->setData(['error' => true, 'message' => __('Access denied.')]);
+        }
 
         try {
             $order = $this->orderRepository->get($orderId);
 
-            if ((int) $order->getCustomerId() !== $customerId) {
+            if ($this->customerSession->isLoggedIn() && (int) $order->getCustomerId() !== $customerId) {
                 throw new LocalizedException(__('Order not found.'));
             }
+
 
             if (!$this->rmaManagement->isOrderEligibleForRma($orderId, $customerId)) {
                 throw new LocalizedException(__('This order is not eligible for a return.'));
             }
 
+            $excludedSkus = $this->config->getExcludedSkus((int) $order->getStoreId());
+            $invoicedAt = $order->getUpdatedAt() ?? $order->getCreatedAt();
+            $invoiceDate = new \DateTimeImmutable($invoicedAt);
+            $now         = new \DateTimeImmutable();
+
             $items = [];
             foreach ($order->getItems() as $item) {
                 if ($item->getParentItemId() || $item->isDummy()) {
+
                     continue;
                 }
 
@@ -58,15 +76,24 @@ class OrderItems implements HttpGetActionInterface
                 $qtyRefunded = (float) $item->getQtyRefunded();
                 // Fix R9: Expose available qty so frontend can cap the return quantity correctly
                 $qtyAvailable = max(0, $qtyOrdered - $qtyRefunded);
+                $sku = $item->getSku();
+                $isExcluded = !empty($excludedSkus) && in_array(strtoupper((string) $sku), $excludedSkus, true);
+
+                // Calculate product specific return window
+                $returnWindowDays = $this->getReturnWindowDaysForProduct($item);
+                $deadline = $invoiceDate->modify('+' . $returnWindowDays . ' days');
+                $isExpired = $now > $deadline;
 
                 $items[] = [
                     'item_id'       => (int) $item->getItemId(),
                     'name'          => $item->getName(),
-                    'sku'           => $item->getSku(),
+                    'sku'           => $sku,
                     'qty_ordered'   => $qtyOrdered,
                     'qty_refunded'  => $qtyRefunded,
                     'qty_available' => $qtyAvailable,
                     'price'         => (float) $item->getPrice(),
+                    'is_excluded'   => $isExcluded,
+                    'is_expired'    => $isExpired,
                 ];
             }
 
@@ -77,4 +104,34 @@ class OrderItems implements HttpGetActionInterface
             return $result->setData(['error' => true, 'message' => 'An error occurred.']);
         }
     }
+
+    /**
+     * Get return window days for a specific order item.
+     */
+    private function getReturnWindowDaysForProduct(\Magento\Sales\Api\Data\OrderItemInterface $orderItem): int
+    {
+        $storeId = (int)$orderItem->getStoreId();
+        try {
+            $product = $this->productRepository->getById((int)$orderItem->getProductId());
+            $policyIdAttr = $product->getCustomAttribute('kkkonrad_rma_policy_id');
+            $policyId = $policyIdAttr ? (int)$policyIdAttr->getValue() : null;
+            if ($policyId) {
+                /** @var \Kkkonrad\Rma\Model\RmaPolicy $policy */
+                $policy = $this->policyFactory->create();
+                $this->policyResource->load($policy, $policyId);
+                if ($policy->getPolicyId() && $policy->getIsActive()) {
+                    return max(
+                        $policy->getDaysRefund(),
+                        $policy->getDaysExchange(),
+                        $policy->getDaysRepair(),
+                        $policy->getDaysVoucher()
+                    );
+                }
+            }
+        } catch (\Exception) {
+            // Fallback to global
+        }
+        return $this->config->getReturnWindowDays($storeId);
+    }
 }
+

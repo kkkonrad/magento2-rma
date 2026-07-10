@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      layout="1column"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="content">
+            <block class="Kkkonrad\Rma\Block\Guest\Create"
+                   name="kkkonrad_rma_guest_create"
+                   template="Kkkonrad_Rma::guest/create.phtml"/>
+            <block class="Kkkonrad\Rma\Block\CustomHtml"
+                   name="kkkonrad_rma_custom_html"
+                   template="Kkkonrad_Rma::custom_css_js.phtml"/>
+        </referenceContainer>
+    </body>
+</page>

@@ -33,6 +33,7 @@ class Detail extends Template
         private readonly ReasonCollectionFactory $reasonCollectionFactory,
         private readonly ConditionCollectionFactory $conditionCollectionFactory,
         private readonly StatusValidator $statusValidator,
+        private readonly StatusSource $statusSource,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -134,7 +135,7 @@ class Detail extends Template
 
     public function getStatusLabel(string $status): string
     {
-        return (string)__(StatusSource::getLabel($status));
+        return (string)__($this->statusSource->getLabel($status));
     }
 
     public function getStatusValidator(): StatusValidator
