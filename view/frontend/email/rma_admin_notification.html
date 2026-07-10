@@ -1,14 +1,13 @@
-<!--@subject {{trans "Your Return Request #%rma_increment_id has been submitted" rma_increment_id=$rma.increment_id}} @-->
+<!--@subject {{trans "New Return Request #%rma_increment_id — %store_name" rma_increment_id=$rma.increment_id store_name=$store.frontend_name}} @-->
 <!--@vars {
-"var rma.increment_id":        "RMA Increment ID",
-"var rma.order_increment_id":  "Order Increment ID",
-"var rma.status":              "RMA Status",
-"var rma.resolution_type":     "Resolution Type",
-"var rma.created_at":          "Created At",
-"var rma.comment":             "Customer Comment",
-"var rma.customer_name":       "Customer Name",
-"var store.frontend_name":     "Store Name",
-"store url=\"\"":              "Store URL"
+"var rma.increment_id":       "RMA Increment ID",
+"var rma.order_increment_id": "Order Increment ID",
+"var rma.customer_name":      "Customer Name",
+"var rma.customer_email":     "Customer Email",
+"var rma.resolution_type":    "Resolution Type",
+"var rma.comment":            "Customer Comment",
+"var store.frontend_name":    "Store Name",
+"store url=\"\"":             "Store URL"
 } @-->
 
 {{template config_path="design/email/header_template"}}
@@ -16,12 +15,9 @@
 <table>
     <tr class="email-intro">
         <td>
-            <p class="greeting">{{trans "Hi %customer_name," customer_name=$rma.customer_name}}</p>
+            <p class="greeting">{{trans "New return request received."}}</p>
             <p>
-                {{trans "We have received your return request and our team will review it shortly."}}
-            </p>
-            <p>
-                {{trans "You can track the progress of your return by logging into your account."}}
+                {{trans "A customer has submitted a new return request. Please review and process it in the admin panel."}}
             </p>
         </td>
     </tr>
@@ -35,7 +31,7 @@
             <table class="order-details">
                 <tr>
                     <td class="address-details">
-                        <h3>{{trans "Return Details"}}</h3>
+                        <h3>{{trans "Request Details"}}</h3>
                         <table class="order-items">
                             <thead>
                                 <tr>
@@ -53,22 +49,29 @@
                                     <td><strong>#{{var rma.order_increment_id}}</strong></td>
                                 </tr>
                                 <tr>
+                                    <td>{{trans "Customer"}}</td>
+                                    <td><strong>{{var rma.customer_name}}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>{{trans "Customer Email"}}</td>
+                                    <td><strong>{{var rma.customer_email}}</strong></td>
+                                </tr>
+                                <tr>
                                     <td>{{trans "Resolution Requested"}}</td>
                                     <td><strong>{{var rma.resolution_type}}</strong></td>
                                 </tr>
-                                <tr>
-                                    <td>{{trans "Status"}}</td>
-                                    <td><strong>{{trans "New"}}</strong></td>
-                                </tr>
                             </tbody>
                         </table>
+                        {{depend rma.comment}}
+                        <p><strong>{{trans "Customer Comment:"}}</strong><br/>{{var rma.comment}}</p>
+                        {{/depend}}
                     </td>
                 </tr>
             </table>
             <table class="button-container">
                 <tr>
                     <td class="button-container__button">
-                        <a href="{{store url='rma/index/index'}}">{{trans "View My Returns"}}</a>
+                        <a href="{{store url='admin/kkkonrad_rma/rma/index'}}">{{trans "View in Admin Panel"}}</a>
                     </td>
                 </tr>
             </table>

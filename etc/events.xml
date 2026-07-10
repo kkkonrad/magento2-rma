@@ -2,16 +2,31 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
 
-    <!-- RMA created — send notification email -->
+    <!-- RMA created — send notification email to customer -->
     <event name="kkkonrad_rma_created">
         <observer name="kkkonrad_rma_send_created_email"
                   instance="Kkkonrad\Rma\Observer\SendRmaCreatedEmail"/>
+        <!-- Fix 8: Notify admin/support team about the new RMA -->
+        <observer name="kkkonrad_rma_send_admin_notification_email"
+                  instance="Kkkonrad\Rma\Observer\SendRmaAdminNotificationEmail"/>
     </event>
 
-    <!-- RMA status changed — send notification email -->
+    <!-- RMA status changed — send notification email to customer -->
     <event name="kkkonrad_rma_status_changed">
         <observer name="kkkonrad_rma_send_status_changed_email"
                   instance="Kkkonrad\Rma\Observer\SendRmaStatusChangedEmail"/>
+    </event>
+
+    <!-- Fix 7: RMA shipping label uploaded — send notification email to customer via Observer -->
+    <event name="kkkonrad_rma_label_uploaded">
+        <observer name="kkkonrad_rma_send_label_uploaded_email"
+                  instance="Kkkonrad\Rma\Observer\SendRmaLabelUploadedEmail"/>
+    </event>
+
+    <!-- Fix 9: Admin replied to RMA — send notification email to customer -->
+    <event name="kkkonrad_rma_message_added">
+        <observer name="kkkonrad_rma_send_message_email"
+                  instance="Kkkonrad\Rma\Observer\SendRmaMessageEmail"/>
     </event>
 
 </config>

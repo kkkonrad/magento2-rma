@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Rma\Controller\Index;
 
+use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\Data\RmaItemInterfaceFactory;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Kkkonrad\Rma\Model\Config;
@@ -11,7 +12,7 @@ use Kkkonrad\Rma\Model\RmaAttachmentFactory;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Framework\Exception\LocalizedException;
@@ -22,8 +23,25 @@ use Psr\Log\LoggerInterface;
 
 class Save implements HttpPostActionInterface
 {
+    /**
+     * Map of allowed file extensions to their expected MIME types.
+     * Extensions not in this map cannot be uploaded.
+     */
+    private const ALLOWED_MIME_TYPES = [
+        'jpg'  => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'png'  => 'image/png',
+        'gif'  => 'image/gif',
+        'webp' => 'image/webp',
+        'pdf'  => 'application/pdf',
+        'mp4'  => 'video/mp4',
+        'doc'  => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'zip'  => 'application/zip',
+    ];
+
     public function __construct(
-        private readonly RequestInterface $request,
+        private readonly HttpRequest $request,
         private readonly JsonFactory $resultJsonFactory,
         private readonly CustomerSession $customerSession,
         private readonly RmaManagementInterface $rmaManagement,
@@ -52,12 +70,12 @@ class Save implements HttpPostActionInterface
         }
 
         try {
-            $customerId    = (int) $this->customerSession->getCustomerId();
-            $orderId       = (int) $this->request->getPost('order_id');
+            $customerId     = (int) $this->customerSession->getCustomerId();
+            $orderId        = (int) $this->request->getPost('order_id');
             $resolutionType = (string) $this->request->getPost('resolution_type');
-            $comment       = (string) $this->request->getPost('comment');
-            $itemsJson     = (string) $this->request->getPost('items', '[]');
-            $itemsData     = json_decode($itemsJson, true) ?? [];
+            $comment        = (string) $this->request->getPost('comment');
+            $itemsJson      = (string) $this->request->getPost('items', '[]');
+            $itemsData      = json_decode($itemsJson, true) ?? [];
 
             if (!$orderId || !$resolutionType || empty($itemsData)) {
                 throw new LocalizedException(__('Please fill in all required fields.'));
@@ -82,7 +100,7 @@ class Save implements HttpPostActionInterface
             // Auto-advance to pending_review so support team is notified immediately
             $this->rmaManagement->changeStatus(
                 $rma->getRmaId(),
-                'pending_review',
+                RmaInterface::STATUS_PENDING_REVIEW,
                 null,
                 'customer',
                 $customerId
@@ -108,40 +126,33 @@ class Save implements HttpPostActionInterface
 
     private function processAttachments(int $rmaId): void
     {
-        $files = $_FILES['attachments'] ?? [];
+        // Fix 1: Use $request->getFiles() instead of $_FILES superglobal
+        $files = $this->request->getFiles('attachments') ?: [];
         if (empty($files['name'])) {
             return;
         }
 
         $mediaDir  = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
         $uploadDir = 'kkkonrad/rma/' . $rmaId;
+        $allowed   = $this->config->getAllowedExtensions();
+        $maxSize   = $this->config->getMaxFileSizeMb() * 1024 * 1024;
+        $finfo     = new \finfo(FILEINFO_MIME_TYPE);
 
         foreach ($files['name'] as $index => $fileName) {
             if ($files['error'][$index] !== UPLOAD_ERR_OK) {
                 continue;
             }
 
-            $ext         = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-            $allowed     = $this->config->getAllowedExtensions();
-            $maxSize     = $this->config->getMaxFileSizeMb() * 1024 * 1024;
+            $ext          = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+            $tmpPath      = $files['tmp_name'][$index];
 
-            // Server-side MIME type verification using finfo
-            $finfo    = new \finfo(FILEINFO_MIME_TYPE);
-            $mimeType = $finfo->file($files['tmp_name'][$index]) ?: 'application/octet-stream';
+            // Fix 2: Validate MIME using finfo (server-side), not the client-supplied type
+            $detectedMime = $finfo->file($tmpPath) ?: 'application/octet-stream';
+            $expectedMime = self::ALLOWED_MIME_TYPES[$ext] ?? null;
 
-            $allowedMimes = [
-                'jpg'  => 'image/jpeg', 'jpeg' => 'image/jpeg',
-                'png'  => 'image/png',  'gif'  => 'image/gif',
-                'webp' => 'image/webp', 'pdf'  => 'application/pdf',
-                'doc'  => 'application/msword',
-                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'zip'  => 'application/zip',
-            ];
-
-            $expectedMime = $allowedMimes[$ext] ?? null;
             if (!in_array($ext, $allowed, true)
                 || $files['size'][$index] > $maxSize
-                || ($expectedMime !== null && $mimeType !== $expectedMime)
+                || ($expectedMime !== null && $detectedMime !== $expectedMime)
             ) {
                 continue;
             }
@@ -150,14 +161,15 @@ class Save implements HttpPostActionInterface
             $relativePath = $uploadDir . '/' . $safeFileName;
 
             $mediaDir->create($uploadDir);
-            $mediaDir->copyFile($files['tmp_name'][$index], $relativePath);
+            $mediaDir->copyFile($tmpPath, $relativePath);
 
             /** @var \Kkkonrad\Rma\Model\RmaAttachment $attachment */
             $attachment = $this->rmaAttachmentFactory->create();
             $attachment->setRmaId($rmaId)
                 ->setFilePath($relativePath)
                 ->setFileName($fileName)
-                ->setMimeType($files['type'][$index] ?? 'application/octet-stream')
+                // Fix 2: Save the finfo-detected MIME type, not the client-supplied one
+                ->setMimeType($detectedMime)
                 ->setFileSize($files['size'][$index]);
 
             $this->rmaAttachmentResource->save($attachment);

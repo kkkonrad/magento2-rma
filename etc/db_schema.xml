@@ -39,6 +39,11 @@
         <index referenceId="KKKONRAD_RMA_CREATED_AT" indexType="btree">
             <column name="created_at"/>
         </index>
+        <!-- Fix 15: Composite index for auto-cancel cron: WHERE status=? AND updated_at<=? -->
+        <index referenceId="KKKONRAD_RMA_STATUS_UPDATED_AT" indexType="btree">
+            <column name="status"/>
+            <column name="updated_at"/>
+        </index>
     </table>
 
     <!-- ============================================================

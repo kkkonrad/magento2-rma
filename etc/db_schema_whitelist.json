@@ -25,7 +25,8 @@
             "KKKONRAD_RMA_ORDER_ID": true,
             "KKKONRAD_RMA_CUSTOMER_ID": true,
             "KKKONRAD_RMA_STATUS": true,
-            "KKKONRAD_RMA_CREATED_AT": true
+            "KKKONRAD_RMA_CREATED_AT": true,
+            "KKKONRAD_RMA_STATUS_UPDATED_AT": true
         }
     },
     "kkkonrad_rma_item": {

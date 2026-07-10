@@ -15,9 +15,12 @@ class Config
     public const XML_PATH_AUTO_CANCEL_DAYS    = 'kkkonrad_rma/automation/auto_cancel_days';
     public const XML_PATH_EMAIL_CREATED       = 'kkkonrad_rma/email/created_template';
     public const XML_PATH_EMAIL_STATUS_CHANGED = 'kkkonrad_rma/email/status_changed_template';
-    public const XML_PATH_EMAIL_LABEL_UPLOADED = 'kkkonrad_rma/email/label_uploaded_template';
-    public const XML_PATH_EMAIL_SENDER        = 'kkkonrad_rma/email/sender';
-    public const XML_PATH_ALLOWED_ORDER_STATUSES = 'kkkonrad_rma/general/allowed_order_statuses';
+    public const XML_PATH_EMAIL_LABEL_UPLOADED        = 'kkkonrad_rma/email/label_uploaded_template';
+    public const XML_PATH_EMAIL_SENDER                = 'kkkonrad_rma/email/sender';
+    public const XML_PATH_EMAIL_ADMIN_NOTIFICATION    = 'kkkonrad_rma/email/admin_notification_email';
+    public const XML_PATH_EMAIL_ADMIN_TEMPLATE        = 'kkkonrad_rma/email/admin_notification_template';
+    public const XML_PATH_EMAIL_MESSAGE_ADDED_TEMPLATE = 'kkkonrad_rma/email/message_added_template';
+    public const XML_PATH_ALLOWED_ORDER_STATUSES      = 'kkkonrad_rma/general/allowed_order_statuses';
 
     public function __construct(
         private readonly ScopeConfigInterface $scopeConfig
@@ -104,6 +107,42 @@ class Config
     {
         return (string) $this->scopeConfig->getValue(
             self::XML_PATH_EMAIL_LABEL_UPLOADED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Fix 8: Admin notification email address (empty = disabled).
+     */
+    public function getAdminNotificationEmail(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_EMAIL_ADMIN_NOTIFICATION,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Fix 8: Admin notification email template identifier.
+     */
+    public function getAdminNotificationEmailTemplate(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_EMAIL_ADMIN_TEMPLATE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Fix 9: Customer notification template when admin sends a message.
+     */
+    public function getMessageAddedEmailTemplate(?int $storeId = null): string
+    {
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_EMAIL_MESSAGE_ADDED_TEMPLATE,
             ScopeInterface::SCOPE_STORE,
             $storeId
         );

@@ -64,6 +64,9 @@ type RmaItem @doc(description: "Single item in an RMA request") {
     qty: Float! @doc(description: "Quantity being returned")
     reason_id: Int @doc(description: "Return reason entity ID")
     condition_id: Int @doc(description: "Item condition entity ID")
+    product_name: String @doc(description: "Product name at time of return")
+    product_sku: String @doc(description: "Product SKU at time of return")
+    unit_price: Float @doc(description: "Unit price at time of order")
 }
 
 type RmaMessage @doc(description: "Message in the RMA communication thread") {

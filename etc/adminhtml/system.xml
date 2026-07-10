@@ -55,6 +55,21 @@
                     <label>Shipping Label Uploaded Email Template</label>
                     <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
                 </field>
+                <!-- Fix 8: Admin notification on new RMA -->
+                <field id="admin_notification_email" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Admin Notification Email</label>
+                    <comment>Email address to notify when a new RMA is created. Leave empty to disable.</comment>
+                    <validate>validate-email</validate>
+                </field>
+                <field id="admin_notification_template" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Admin Notification Email Template</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
+                <!-- Fix 9: Customer notification when admin sends a message -->
+                <field id="message_added_template" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>New Message Notification Template (to Customer)</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+                </field>
             </group>
 
             <group id="automation" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">

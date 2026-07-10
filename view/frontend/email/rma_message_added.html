@@ -1,10 +1,12 @@
-<!--@subject {{trans "Your Return #%rma_increment_id Status Update" rma_increment_id=$rma.increment_id}} @-->
+<!--@subject {{trans "New message on your Return Request #%rma_increment_id" rma_increment_id=$rma.increment_id}} @-->
 <!--@vars {
-"var rma.increment_id":  "RMA Increment ID",
-"var rma.status":        "New Status",
-"var rma.customer_name": "Customer Name",
-"var store.frontend_name": "Store Name",
-"store url=\"\"":        "Store URL"
+"var rma.increment_id":       "RMA Increment ID",
+"var rma.order_increment_id": "Order Increment ID",
+"var rma.customer_name":      "Customer Name",
+"var message.message":        "Message Content",
+"var message.author_name":    "Author Name",
+"var store.frontend_name":    "Store Name",
+"store url=\"\"":             "Store URL"
 } @-->
 
 {{template config_path="design/email/header_template"}}
@@ -14,16 +16,13 @@
         <td>
             <p class="greeting">{{trans "Hi %customer_name," customer_name=$rma.customer_name}}</p>
             <p>
-                {{trans "The status of your return request has been updated."}}
-            </p>
-            <p>
-                {{trans "You can view the latest details of your return by logging into your account."}}
+                {{trans "Our support team has replied to your return request. Here is their message:"}}
             </p>
         </td>
     </tr>
     <tr class="email-summary">
         <td>
-            <h1>{{trans "Return Status Update — #%rma_id" rma_id=$rma.increment_id}}</h1>
+            <h1>{{trans "New Message — Return #%rma_id" rma_id=$rma.increment_id}}</h1>
         </td>
     </tr>
     <tr class="email-information">
@@ -31,6 +30,13 @@
             <table class="order-details">
                 <tr>
                     <td class="address-details">
+                        <h3>{{trans "Message from %author_name" author_name=$message.author_name}}</h3>
+                        <table class="message-info">
+                            <tr>
+                                <td>{{var message.message}}</td>
+                            </tr>
+                        </table>
+                        <br/>
                         <h3>{{trans "Return Details"}}</h3>
                         <table class="order-items">
                             <thead>
@@ -45,7 +51,11 @@
                                     <td><strong>#{{var rma.increment_id}}</strong></td>
                                 </tr>
                                 <tr>
-                                    <td>{{trans "New Status"}}</td>
+                                    <td>{{trans "Order Number"}}</td>
+                                    <td><strong>#{{var rma.order_increment_id}}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td>{{trans "Status"}}</td>
                                     <td><strong>{{var rma.status}}</strong></td>
                                 </tr>
                             </tbody>
@@ -56,7 +66,7 @@
             <table class="button-container">
                 <tr>
                     <td class="button-container__button">
-                        <a href="{{store url='rma/index/index'}}">{{trans "View My Returns"}}</a>
+                        <a href="{{store url='rma/index/view' rma_id=$rma.rma_id}}">{{trans "View My Return"}}</a>
                     </td>
                 </tr>
             </table>

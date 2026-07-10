@@ -9,16 +9,14 @@ use Kkkonrad\Rma\Api\Data\RmaMessageInterface;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\ResourceModel\RmaItem as RmaItemResource;
+use Kkkonrad\Rma\Model\ResourceModel\RmaItem\CollectionFactory as RmaItemCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaMessage as RmaMessageResource;
 use Kkkonrad\Rma\Model\ResourceModel\RmaStatusHistory as RmaStatusHistoryResource;
 use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Stdlib\DateTime\DateTime as MagentoDateTime;
 use Magento\Sales\Api\CreditmemoManagementInterface;
-use Magento\Sales\Api\Data\CreditmemoCommentInterfaceFactory;
-use Magento\Sales\Api\Data\CreditmemoInterfaceFactory;
-use Magento\Sales\Api\Data\CreditmemoItemCreationInterfaceFactory;
-use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\CreditmemoFactory;
 use Psr\Log\LoggerInterface;
@@ -28,6 +26,7 @@ class RmaManagement implements RmaManagementInterface
     public function __construct(
         private readonly RmaRepositoryInterface $rmaRepository,
         private readonly RmaItemResource $rmaItemResource,
+        private readonly RmaItemCollectionFactory $rmaItemCollectionFactory,
         private readonly RmaMessageResource $rmaMessageResource,
         private readonly RmaStatusHistoryResource $rmaStatusHistoryResource,
         private readonly StatusValidator $statusValidator,
@@ -40,6 +39,7 @@ class RmaManagement implements RmaManagementInterface
         private readonly CreditmemoManagementInterface $creditmemoManagement,
         private readonly CreditmemoFactory $creditmemoFactory,
         private readonly EventManagerInterface $eventManager,
+        private readonly MagentoDateTime $dateTime,
         private readonly LoggerInterface $logger
     ) {
     }
@@ -54,15 +54,19 @@ class RmaManagement implements RmaManagementInterface
         array $items,
         ?string $comment = null
     ): RmaInterface {
-        if (!$this->isOrderEligibleForRma($orderId, $customerId)) {
-            throw new LocalizedException(__('This order is not eligible for a return.'));
-        }
-
+        // Fix 10: Load order once and reuse — eliminates the second load in isOrderEligibleForRma()
         try {
             $order = $this->orderRepository->get($orderId);
         } catch (NoSuchEntityException $e) {
             throw new LocalizedException(__('Order not found.'));
         }
+
+        if (!$this->isOrderEligibleForRmaObject($order, $customerId)) {
+            throw new LocalizedException(__('This order is not eligible for a return.'));
+        }
+
+        // Fix 6: Race condition guard — prevent duplicate active RMAs for the same order
+        $this->assertNoDuplicateActiveRma($orderId, $customerId);
 
         /** @var Rma $rma */
         $rma = $this->rmaFactory->create();
@@ -78,7 +82,7 @@ class RmaManagement implements RmaManagementInterface
 
         $this->rmaRepository->save($rma);
 
-        // Save items
+        // Save items — validate each against order items (Fix 4)
         foreach ($items as $itemData) {
             $this->saveRmaItem($rma->getRmaId(), $itemData, $order);
         }
@@ -88,9 +92,9 @@ class RmaManagement implements RmaManagementInterface
 
         // Emit event
         $this->eventManager->dispatch('kkkonrad_rma_created', [
-            'rma'       => $rma,
-            'order'     => $order,
-            'items'     => $items,
+            'rma'   => $rma,
+            'order' => $order,
+            'items' => $items,
         ]);
 
         return $rma;
@@ -106,7 +110,7 @@ class RmaManagement implements RmaManagementInterface
         string $changedBy = 'system',
         ?int $changedById = null
     ): RmaInterface {
-        $rma = $this->rmaRepository->getById($rmaId);
+        $rma       = $this->rmaRepository->getById($rmaId);
         $oldStatus = $rma->getStatus();
 
         // Throws LocalizedException on invalid transition
@@ -115,7 +119,8 @@ class RmaManagement implements RmaManagementInterface
         $rma->setStatus($newStatus);
 
         if ($newStatus === RmaInterface::STATUS_RESOLVED) {
-            $rma->setResolvedAt(date('Y-m-d H:i:s'));
+            // Fix 12: Use Magento DateTime instead of PHP date()
+            $rma->setResolvedAt($this->dateTime->gmtDate());
         }
 
         $this->rmaRepository->save($rma);
@@ -124,11 +129,11 @@ class RmaManagement implements RmaManagementInterface
 
         // Emit event
         $this->eventManager->dispatch('kkkonrad_rma_status_changed', [
-            'rma'        => $rma,
+            'rma'         => $rma,
             'status_from' => $oldStatus,
-            'status_to'  => $newStatus,
-            'comment'    => $comment,
-            'changed_by' => $changedBy,
+            'status_to'   => $newStatus,
+            'comment'     => $comment,
+            'changed_by'  => $changedBy,
         ]);
 
         return $rma;
@@ -179,13 +184,13 @@ class RmaManagement implements RmaManagementInterface
             'admin'
         );
 
-        // Create credit memo for refund resolutions
+        // Fix 5: Create credit memo only for returned items, not the whole order
         if ($rma->getResolutionType() === RmaInterface::RESOLUTION_REFUND) {
             try {
                 $this->createCreditMemo($rma);
             } catch (\Exception $e) {
                 $this->logger->error('RMA credit memo creation failed: ' . $e->getMessage(), [
-                    'rma_id'   => $rmaId,
+                    'rma_id'    => $rmaId,
                     'exception' => $e,
                 ]);
                 // Don't fail approval — log and continue. Admin can create CM manually.
@@ -245,6 +250,17 @@ class RmaManagement implements RmaManagementInterface
             return false;
         }
 
+        return $this->isOrderEligibleForRmaObject($order, $customerId);
+    }
+
+    /**
+     * Check eligibility against an already-loaded order object.
+     * Fix 10: Avoids double-loading the order in createFromOrder().
+     */
+    private function isOrderEligibleForRmaObject(
+        \Magento\Sales\Api\Data\OrderInterface $order,
+        int $customerId
+    ): bool {
         // Customer ownership check
         if ((int) $order->getCustomerId() !== $customerId) {
             return false;
@@ -256,12 +272,19 @@ class RmaManagement implements RmaManagementInterface
             return false;
         }
 
-        // Check return window (configured in days)
+        // Fix 13: Use DateTimeImmutable instead of strtotime() for safer date arithmetic
+        $invoicedAt      = $order->getUpdatedAt() ?? $order->getCreatedAt();
         $returnWindowDays = $this->config->getReturnWindowDays((int) $order->getStoreId());
-        $invoicedAt = $order->getUpdatedAt() ?? $order->getCreatedAt();
-        $deadline = strtotime('+' . $returnWindowDays . ' days', strtotime($invoicedAt));
 
-        if (time() > $deadline) {
+        try {
+            $invoiceDate = new \DateTimeImmutable($invoicedAt);
+            $deadline    = $invoiceDate->modify('+' . $returnWindowDays . ' days');
+            $now         = new \DateTimeImmutable();
+        } catch (\Exception) {
+            return false;
+        }
+
+        if ($now > $deadline) {
             return false;
         }
 
@@ -269,33 +292,92 @@ class RmaManagement implements RmaManagementInterface
     }
 
     /**
-     * Save individual RMA item from request data
+     * Fix 6: Throw if a non-terminal RMA already exists for this order+customer combination.
+     *
+     * @throws LocalizedException
      */
-    private function saveRmaItem(int $rmaId, RmaItemInterface $itemData, \Magento\Sales\Api\Data\OrderInterface $order): void
+    private function assertNoDuplicateActiveRma(int $orderId, int $customerId): void
     {
+        $terminalStatuses = [
+            RmaInterface::STATUS_CLOSED,
+            RmaInterface::STATUS_CANCELLED,
+            RmaInterface::STATUS_REJECTED,
+        ];
+
+        $collection = $this->rmaItemCollectionFactory->create();
+        $collection->getSelect()->join(
+            ['r' => $collection->getResource()->getTable('kkkonrad_rma')],
+            'main_table.rma_id = r.rma_id',
+            []
+        );
+        $collection->getSelect()
+            ->where('r.order_id = ?', $orderId)
+            ->where('r.customer_id = ?', $customerId)
+            ->where('r.status NOT IN (?)', $terminalStatuses)
+            ->limit(1);
+
+        if ($collection->getSize() > 0) {
+            throw new LocalizedException(
+                __('An active return request already exists for this order.')
+            );
+        }
+    }
+
+    /**
+     * Save individual RMA item from request data.
+     * Fix 4: Validates that order_item_id belongs to the order and qty is within bounds.
+     */
+    private function saveRmaItem(
+        int $rmaId,
+        RmaItemInterface $itemData,
+        \Magento\Sales\Api\Data\OrderInterface $order
+    ): void {
+        $matchedOrderItem = null;
+
+        foreach ($order->getItems() as $orderItem) {
+            if ((int) $orderItem->getItemId() === $itemData->getOrderItemId()) {
+                $matchedOrderItem = $orderItem;
+                break;
+            }
+        }
+
+        // Fix 4a: Verify the item belongs to this order
+        if ($matchedOrderItem === null) {
+            throw new LocalizedException(
+                __('Item #%1 does not belong to this order.', $itemData->getOrderItemId())
+            );
+        }
+
+        // Fix 4b: Validate requested qty
+        $requestedQty = $itemData->getQty();
+        if ($requestedQty <= 0) {
+            throw new LocalizedException(__('Return quantity must be greater than zero.'));
+        }
+
+        $orderedQty = (float) $matchedOrderItem->getQtyOrdered();
+        if ($requestedQty > $orderedQty) {
+            throw new LocalizedException(
+                __('Return quantity (%1) cannot exceed ordered quantity (%2) for "%3".',
+                    $requestedQty, $orderedQty, $matchedOrderItem->getName())
+            );
+        }
+
         /** @var RmaItem $rmaItem */
         $rmaItem = $this->rmaItemFactory->create();
         $rmaItem->setRmaId($rmaId)
             ->setOrderItemId($itemData->getOrderItemId())
-            ->setQty($itemData->getQty())
+            ->setQty($requestedQty)
             ->setReasonId($itemData->getReasonId())
-            ->setConditionId($itemData->getConditionId());
-
-        // Enrich with product data from the order item
-        foreach ($order->getItems() as $orderItem) {
-            if ((int) $orderItem->getItemId() === $itemData->getOrderItemId()) {
-                $rmaItem->setProductName($orderItem->getName())
-                    ->setProductSku($orderItem->getSku())
-                    ->setUnitPrice((float) $orderItem->getPrice());
-                break;
-            }
-        }
+            ->setConditionId($itemData->getConditionId())
+            ->setProductName($matchedOrderItem->getName())
+            ->setProductSku($matchedOrderItem->getSku())
+            ->setUnitPrice((float) $matchedOrderItem->getPrice());
 
         $this->rmaItemResource->save($rmaItem);
     }
 
     /**
-     * Save status history entry
+     * Save status history entry.
      */
     private function addStatusHistory(
         int $rmaId,
@@ -318,19 +400,36 @@ class RmaManagement implements RmaManagementInterface
     }
 
     /**
-     * Create credit memo for refund-type RMA approval.
+     * Fix 5: Create credit memo only for the specific items being returned, not the whole order.
+     * Uses CreditmemoFactory::createByOrder() with explicit qty mapping to avoid over-refunding.
      */
     private function createCreditMemo(RmaInterface $rma): void
     {
         $order = $this->orderRepository->get($rma->getOrderId());
-        $creditmemo = $this->creditmemoFactory->createByOrder($order);
+
+        // Load RMA items to build a partial refund
+        $rmaItems = $this->rmaItemCollectionFactory->create();
+        $rmaItems->addFieldToFilter('rma_id', $rma->getRmaId());
+
+        // Build qty map: [order_item_id => qty_to_refund]
+        $qtys = [];
+        foreach ($rmaItems as $rmaItem) {
+            $qtys[$rmaItem->getOrderItemId()] = $rmaItem->getQty();
+        }
+
+        if (empty($qtys)) {
+            return;
+        }
+
+        $creditmemo = $this->creditmemoFactory->createByOrder($order, ['qtys' => $qtys]);
 
         if ($creditmemo) {
             $this->creditmemoManagement->refund($creditmemo);
 
-            $this->logger->info('RMA credit memo created.', [
+            $this->logger->info('RMA partial credit memo created.', [
                 'rma_id'   => $rma->getRmaId(),
                 'order_id' => $rma->getOrderId(),
+                'qtys'     => $qtys,
             ]);
         }
     }

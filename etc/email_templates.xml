@@ -19,4 +19,18 @@
               type="html"
               module="Kkkonrad_Rma"
               area="frontend"/>
+    <!-- Fix 8: Admin notification on new RMA -->
+    <template id="kkkonrad_rma_email_admin_notification"
+              label="RMA Admin Notification (New Request)"
+              file="rma_admin_notification.html"
+              type="html"
+              module="Kkkonrad_Rma"
+              area="frontend"/>
+    <!-- Fix 9: Customer notification when admin sends a message -->
+    <template id="kkkonrad_rma_email_message_added"
+              label="RMA New Message Notification"
+              file="rma_message_added.html"
+              type="html"
+              module="Kkkonrad_Rma"
+              area="frontend"/>
 </config>
