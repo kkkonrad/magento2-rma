@@ -23,6 +23,12 @@
                 type="Kkkonrad\Rma\Model\RmaAddress"/>
     <preference for="Kkkonrad\Rma\Api\Data\RmaPolicyInterface"
                 type="Kkkonrad\Rma\Model\RmaPolicy"/>
+    <preference for="Kkkonrad\Rma\Api\Data\RmaResolutionInterface"
+                type="Kkkonrad\Rma\Model\RmaResolution"/>
+    <preference for="Kkkonrad\Rma\Api\Data\CannedReplyInterface"
+                type="Kkkonrad\Rma\Model\CannedReply"/>
+
+
 
 
     <preference for="Kkkonrad\Rma\Api\RmaRepositoryInterface"
@@ -94,6 +100,24 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="Kkkonrad\Rma\Model\ResourceModel\RmaResolution\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">kkkonrad_rma_resolution</argument>
+            <argument name="resourceModel" xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaResolution</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="Kkkonrad\Rma\Model\ResourceModel\CannedReply\Grid\Collection"
+                 type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">kkkonrad_rma_canned_reply</argument>
+            <argument name="resourceModel" xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\CannedReply</argument>
+        </arguments>
+    </virtualType>
+
+
+
 
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
@@ -108,9 +132,15 @@
                       xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaAddress\Grid\Collection</item>
                 <item name="kkkonrad_rma_policy_listing_data_source"
                       xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaPolicy\Grid\Collection</item>
+                <item name="kkkonrad_rma_resolution_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaResolution\Grid\Collection</item>
+                <item name="kkkonrad_rma_cannedreply_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\CannedReply\Grid\Collection</item>
             </argument>
         </arguments>
     </type>
+
+
 
 
 </config>

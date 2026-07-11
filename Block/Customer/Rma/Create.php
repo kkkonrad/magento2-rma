@@ -27,17 +27,43 @@ class Create extends Template
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly RmaManagementInterface $rmaManagement,
         private readonly ReasonCollectionFactory $reasonCollectionFactory,
-        private readonly ConditionCollectionFactory $conditionCollectionFactory,
-        private readonly ResolutionType $resolutionTypeSource,
-        private readonly Config $config,
-        private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
-        private readonly \Magento\Framework\Data\Form\FormKey $formKey,
-        array $data = []
-    ) {
-        parent::__construct($context, $data);
-    }
+         private readonly ConditionCollectionFactory $conditionCollectionFactory,
+         private readonly ResolutionType $resolutionTypeSource,
+         private readonly Config $config,
+         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+         private readonly \Magento\Framework\Data\Form\FormKey $formKey,
+         private readonly \Magento\Cms\Helper\Page $pageHelper,
+         array $data = []
+     ) {
+         parent::__construct($context, $data);
+     }
+
+     public function isTermsEnabled(): bool
+     {
+         return $this->config->isTermsEnabled((int)$this->_storeManager->getStore()->getId());
+     }
+
+     public function getTermsPageUrl(): string
+     {
+         $pageId = $this->config->getTermsCmsPage((int)$this->_storeManager->getStore()->getId());
+         return $pageId ? $this->pageHelper->getPageUrl($pageId) : '';
+     }
+
+     public function getReasonsRequireImageMap(): array
+     {
+         $collection = $this->reasonCollectionFactory->create();
+         $collection->addFieldToFilter('is_active', ['eq' => 1]);
+         $map = [];
+         foreach ($collection as $reason) {
+             if ($reason->getData('require_image')) {
+                 $map[] = (int)$reason->getReasonId();
+             }
+         }
+         return $map;
+     }
 
     public function getEligibleOrders(): array
+
     {
         $customerId = (int) $this->customerSession->getCustomerId();
         if (!$customerId) {

@@ -376,9 +376,31 @@ $uploadUrl       = $block->getUploadUrl();
             </div>
         </template>
 
+        <!-- Terms & Conditions Checkbox -->
+        <template x-if="selectedItems.length > 0 && resolutionType && termsEnabled">
+            <div class="card bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+                <div class="flex items-start gap-3">
+                    <input type="checkbox"
+                           id="terms-accept"
+                           x-model="termsAccepted"
+                           class="mt-1 rounded text-primary focus:ring-primary h-4 w-4 border-gray-300"/>
+                    <label for="terms-accept" class="text-sm text-gray-600 font-medium">
+                        <?= $escaper->escapeHtml(__('I accept the')) ?>
+                        <a href="<?= $escaper->escapeUrl($block->getTermsPageUrl()) ?>"
+                           target="_blank"
+                           class="text-primary hover:underline font-semibold">
+                            <?= $escaper->escapeHtml(__('Terms and Conditions')) ?>
+                        </a>
+                        <?= $escaper->escapeHtml(__('for returns.')) ?>
+                    </label>
+                </div>
+            </div>
+        </template>
+
         <!-- Submit Button -->
         <template x-if="selectedItems.length > 0 && resolutionType">
             <div class="flex items-center justify-between gap-4 pt-2">
+
                 <a href="<?= $escaper->escapeUrl($block->getUrl('rma/index/index')) ?>"
                    class="text-sm text-gray-500 hover:text-gray-700 transition-colors">
                     ← <?= $escaper->escapeHtml(__('Cancel')) ?>
@@ -421,6 +443,10 @@ function initRmaCreate() {
         submitting: false,
         successMessage: '',
         errorMessage: '',
+        termsEnabled: <?= json_encode($block->isTermsEnabled()) ?>,
+        termsAccepted: false,
+        reasonsRequireImageMap: <?= json_encode($block->getReasonsRequireImageMap()) ?>,
+
 
         init() {
             const root = this.$root;
@@ -601,6 +627,27 @@ function initRmaCreate() {
                 this.errorMessage = 'Please complete all required fields.';
                 return;
             }
+
+            // Terms and Conditions Validation
+            if (this.termsEnabled && !this.termsAccepted) {
+                this.errorMessage = 'Please accept the Terms and Conditions for returns.';
+                return;
+            }
+
+            // Reason-Specific Attachment Validation
+            let requiresImage = false;
+            for (const item of this.selectedItems) {
+                if (this.reasonsRequireImageMap.includes(parseInt(item.reason_id, 10))) {
+                    requiresImage = true;
+                    break;
+                }
+            }
+
+            if (requiresImage && this.attachments.length === 0) {
+                this.errorMessage = 'At least one of your selected return reasons requires photographic verification. Please attach at least one image or document.';
+                return;
+            }
+
 
             this.submitting = true;
 

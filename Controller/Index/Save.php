@@ -53,7 +53,8 @@ class Save implements HttpPostActionInterface
         private readonly Random $random,
         private readonly LoggerInterface $logger,
         private readonly FormKeyValidator $formKeyValidator,
-        private readonly UrlInterface $url
+        private readonly UrlInterface $url,
+        private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaReason\CollectionFactory $reasonCollectionFactory
     ) {
     }
 
@@ -81,6 +82,36 @@ class Save implements HttpPostActionInterface
                 throw new LocalizedException(__('Please fill in all required fields.'));
             }
 
+            // Reason-Specific Attachment validation (backend)
+            $requiredImageReasonIds = [];
+            foreach ($itemsData as $itemData) {
+                if (!empty($itemData['reason_id'])) {
+                    $requiredImageReasonIds[] = (int)$itemData['reason_id'];
+                }
+            }
+
+            if (!empty($requiredImageReasonIds)) {
+                $reasonCollection = $this->reasonCollectionFactory->create();
+                $reasonCollection->addFieldToFilter('reason_id', ['in' => $requiredImageReasonIds])
+                    ->addFieldToFilter('require_image', 1);
+
+                if ($reasonCollection->getSize() > 0) {
+                    $files = $this->request->getFiles('attachments') ?: [];
+                    $hasFiles = false;
+                    if (!empty($files['name'])) {
+                        foreach ($files['error'] as $err) {
+                            if ($err === UPLOAD_ERR_OK) {
+                                $hasFiles = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!$hasFiles) {
+                        throw new LocalizedException(__('At least one of your selected return reasons requires photographic verification. Please attach at least one image or document.'));
+                    }
+                }
+            }
+
             // Build RmaItem objects
             $items = [];
             foreach ($itemsData as $itemData) {
@@ -96,6 +127,7 @@ class Save implements HttpPostActionInterface
             }
 
             $rma = $this->rmaManagement->createFromOrder($orderId, $customerId, $resolutionType, $items, $comment);
+
 
             // Auto-advance to pending_review so support team is notified immediately
             $this->rmaManagement->changeStatus(

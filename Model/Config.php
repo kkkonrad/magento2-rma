@@ -26,6 +26,10 @@ class Config
     public const XML_PATH_CUSTOM_CSS                  = 'kkkonrad_rma/general/custom_css';
     public const XML_PATH_CUSTOM_JS                   = 'kkkonrad_rma/general/custom_js';
     public const XML_PATH_ALLOW_GUEST_RMA            = 'kkkonrad_rma/general/allow_guest_rma';
+    public const XML_PATH_TERMS_ENABLED               = 'kkkonrad_rma/general/terms_enabled';
+    public const XML_PATH_TERMS_CMS_PAGE              = 'kkkonrad_rma/general/terms_cms_page';
+    public const XML_PATH_EXCLUDED_CUSTOMER_GROUPS    = 'kkkonrad_rma/general/excluded_customer_groups';
+
 
 
 
@@ -239,6 +243,47 @@ class Config
             $storeId
         );
     }
+
+    /**
+     * Whether terms and conditions are enabled.
+     */
+    public function isTermsEnabled(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_TERMS_ENABLED,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Get terms and conditions CMS Page identifier/ID.
+     */
+    public function getTermsCmsPage(?int $storeId = null): string
+    {
+        return (string)$this->scopeConfig->getValue(
+            self::XML_PATH_TERMS_CMS_PAGE,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+    }
+
+    /**
+     * Get excluded customer groups as array of IDs.
+     */
+    public function getExcludedCustomerGroups(?int $storeId = null): array
+    {
+        $value = $this->scopeConfig->getValue(
+            self::XML_PATH_EXCLUDED_CUSTOMER_GROUPS,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+        if (empty($value)) {
+            return [];
+        }
+        return array_map('intval', explode(',', (string)$value));
+    }
 }
+
 
 

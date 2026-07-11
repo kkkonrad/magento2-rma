@@ -62,7 +62,28 @@
                     <comment>Enable to allow guest checkout orders to request and manage returns without logging in.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <!-- Terms and Conditions -->
+                <field id="terms_enabled" translate="label comment" type="select" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Require Terms and Conditions</label>
+                    <comment>Require customers to accept Terms and Conditions before creating RMA.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="terms_cms_page" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Terms and Conditions CMS Page</label>
+                    <comment>Select the page that contains terms and conditions for returns.</comment>
+                    <source_model>Magento\Cms\Model\Config\Source\Page</source_model>
+                    <depends>
+                        <field id="terms_enabled">1</field>
+                    </depends>
+                </field>
+                <!-- Excluded Customer Groups -->
+                <field id="excluded_customer_groups" translate="label comment" type="multiselect" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Excluded Customer Groups</label>
+                    <comment>Select customer groups that are NOT allowed to create RMA requests.</comment>
+                    <source_model>Magento\Customer\Model\Config\Source\GroupMultiselect</source_model>
+                </field>
             </group>
+
 
 
 

@@ -290,8 +290,17 @@ class RmaManagement implements RmaManagementInterface
             return false;
         }
 
+        // Customer group eligibility check
+        $customerGroupId = $order->getCustomerGroupId() !== null ? (int)$order->getCustomerGroupId() : null;
+        if ($customerGroupId !== null) {
+            $excludedGroups = $this->config->getExcludedCustomerGroups((int)$order->getStoreId());
+            if (in_array($customerGroupId, $excludedGroups, true)) {
+                return false;
+            }
+        }
 
         // Order status check based on configuration
+
         $allowedStatuses = $this->config->getAllowedOrderStatuses((int) $order->getStoreId());
         if (!in_array($order->getStatus(), $allowedStatuses, true)) {
             return false;

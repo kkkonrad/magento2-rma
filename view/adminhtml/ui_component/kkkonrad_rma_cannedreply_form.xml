@@ -3,9 +3,9 @@
       xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
     <argument name="data" xsi:type="array">
         <item name="js_config" xsi:type="array">
-            <item name="provider" xsi:type="string">kkkonrad_rma_reason_form.kkkonrad_rma_reason_form_data_source</item>
+            <item name="provider" xsi:type="string">kkkonrad_rma_cannedreply_form.kkkonrad_rma_cannedreply_form_data_source</item>
         </item>
-        <item name="label" xsi:type="string" translate="true">Return Reason</item>
+        <item name="label" xsi:type="string" translate="true">Canned Reply</item>
         <item name="template" xsi:type="string">templates/form/collapsible</item>
     </argument>
     <settings>
@@ -14,25 +14,25 @@
             <button name="delete" class="Kkkonrad\Rma\Block\Adminhtml\Rma\Edit\DeleteButton"/>
             <button name="back" class="Kkkonrad\Rma\Block\Adminhtml\Rma\Edit\BackButton"/>
         </buttons>
-        <namespace>kkkonrad_rma_reason_form</namespace>
+        <namespace>kkkonrad_rma_cannedreply_form</namespace>
         <dataScope>data</dataScope>
         <deps>
-            <dep>kkkonrad_rma_reason_form.kkkonrad_rma_reason_form_data_source</dep>
+            <dep>kkkonrad_rma_cannedreply_form.kkkonrad_rma_cannedreply_form_data_source</dep>
         </deps>
     </settings>
-    <dataSource name="kkkonrad_rma_reason_form_data_source">
+    <dataSource name="kkkonrad_rma_cannedreply_form_data_source">
         <argument name="data" xsi:type="array">
             <item name="js_config" xsi:type="array">
                 <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
             </item>
         </argument>
         <settings>
-            <submitUrl path="kkkonrad_rma/reason/save"/>
+            <submitUrl path="kkkonrad_rma/cannedreply/save"/>
         </settings>
-        <dataProvider class="Kkkonrad\Rma\Model\Reason\DataProvider" name="kkkonrad_rma_reason_form_data_source">
+        <dataProvider class="Kkkonrad\Rma\Model\CannedReply\DataProvider" name="kkkonrad_rma_cannedreply_form_data_source">
             <settings>
-                <requestFieldName>reason_id</requestFieldName>
-                <primaryFieldName>reason_id</primaryFieldName>
+                <requestFieldName>reply_id</requestFieldName>
+                <primaryFieldName>reply_id</primaryFieldName>
             </settings>
         </dataProvider>
     </dataSource>
@@ -40,45 +40,34 @@
         <settings>
             <label translate="true">General Information</label>
         </settings>
-        <field name="reason_id" formElement="input">
+        <field name="reply_id" formElement="input">
             <settings>
                 <dataType>text</dataType>
                 <visible>false</visible>
-                <dataScope>reason_id</dataScope>
+                <dataScope>reply_id</dataScope>
             </settings>
         </field>
-        <field name="label" sortOrder="10" formElement="input">
+        <field name="title" sortOrder="10" formElement="input">
             <settings>
                 <validation>
                     <rule name="required-entry" xsi:type="boolean">true</rule>
                 </validation>
                 <dataType>text</dataType>
-                <label translate="true">Label</label>
-                <dataScope>label</dataScope>
+                <label translate="true">Title / Name</label>
+                <dataScope>title</dataScope>
             </settings>
         </field>
-        <field name="code" sortOrder="20" formElement="input">
+        <field name="text" sortOrder="20" formElement="textarea">
             <settings>
                 <validation>
                     <rule name="required-entry" xsi:type="boolean">true</rule>
-                    <rule name="validate-code" xsi:type="boolean">true</rule>
                 </validation>
                 <dataType>text</dataType>
-                <label translate="true">Code</label>
-                <dataScope>code</dataScope>
+                <label translate="true">Canned Response Text</label>
+                <dataScope>text</dataScope>
             </settings>
         </field>
-        <field name="sort_order" sortOrder="30" formElement="input">
-            <settings>
-                <validation>
-                    <rule name="validate-number" xsi:type="boolean">true</rule>
-                </validation>
-                <dataType>text</dataType>
-                <label translate="true">Sort Order</label>
-                <dataScope>sort_order</dataScope>
-            </settings>
-        </field>
-        <field name="is_active" sortOrder="40" formElement="checkbox">
+        <field name="is_active" sortOrder="30" formElement="checkbox">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="default" xsi:type="number">1</item>
@@ -101,29 +90,5 @@
                 </checkbox>
             </formElements>
         </field>
-        <field name="require_image" sortOrder="50" formElement="checkbox">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="default" xsi:type="number">0</item>
-                </item>
-            </argument>
-            <settings>
-                <dataType>boolean</dataType>
-                <label translate="true">Require Photo Attachment</label>
-                <dataScope>require_image</dataScope>
-            </settings>
-            <formElements>
-                <checkbox>
-                    <settings>
-                        <valueMap>
-                            <map name="false" xsi:type="number">0</map>
-                            <map name="true" xsi:type="number">1</map>
-                        </valueMap>
-                        <prefer>toggle</prefer>
-                    </settings>
-                </checkbox>
-            </formElements>
-        </field>
-
     </fieldset>
 </form>

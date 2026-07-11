@@ -34,10 +34,27 @@ class Detail extends Template
         private readonly ConditionCollectionFactory $conditionCollectionFactory,
         private readonly StatusValidator $statusValidator,
         private readonly StatusSource $statusSource,
+        private readonly \Kkkonrad\Rma\Model\ResourceModel\CannedReply\CollectionFactory $cannedReplyCollectionFactory,
         array $data = []
     ) {
         parent::__construct($context, $data);
     }
+
+    public function getCannedReplies(): array
+    {
+        $collection = $this->cannedReplyCollectionFactory->create();
+        $collection->addFieldToFilter('is_active', 1);
+        $options = [];
+        foreach ($collection as $reply) {
+            $options[] = [
+                'id' => (int)$reply->getId(),
+                'title' => $reply->getTitle(),
+                'text' => $reply->getText()
+            ];
+        }
+        return $options;
+    }
+
 
     public function getRma(): ?RmaInterface
     {

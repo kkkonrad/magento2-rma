@@ -116,7 +116,8 @@
             "label": true,
             "code": true,
             "sort_order": true,
-            "is_active": true
+            "is_active": true,
+            "require_image": true
         },
         "constraint": {
             "PRIMARY": true,
@@ -159,6 +160,37 @@
         "index": {
             "KKKONRAD_RMA_ADDRESS_IS_DEFAULT": true,
             "KKKONRAD_RMA_ADDRESS_IS_ACTIVE": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "kkkonrad_rma_resolution": {
+        "column": {
+            "resolution_id": true,
+            "label": true,
+            "code": true,
+            "sort_order": true,
+            "is_active": true
+        },
+        "index": {
+            "KKKONRAD_RMA_RESOLUTION_SORT_ORDER": true,
+            "KKKONRAD_RMA_RESOLUTION_IS_ACTIVE": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "KKKONRAD_RMA_RESOLUTION_CODE": true
+        }
+    },
+    "kkkonrad_rma_canned_reply": {
+        "column": {
+            "reply_id": true,
+            "title": true,
+            "text": true,
+            "is_active": true
+        },
+        "index": {
+            "KKKONRAD_RMA_CANNED_REPLY_IS_ACTIVE": true
         },
         "constraint": {
             "PRIMARY": true

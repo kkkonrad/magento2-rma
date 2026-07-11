@@ -25,7 +25,14 @@
                     <resource id="Kkkonrad_Rma::policies" title="Return Policies" sortOrder="84">
                         <resource id="Kkkonrad_Rma::policies_manage" title="Manage Return Policies" sortOrder="10"/>
                     </resource>
+                    <resource id="Kkkonrad_Rma::resolutions" title="Return Resolutions" sortOrder="86">
+                        <resource id="Kkkonrad_Rma::resolutions_manage" title="Manage Return Resolutions" sortOrder="10"/>
+                    </resource>
+                    <resource id="Kkkonrad_Rma::cannedreplies" title="Canned Replies" sortOrder="88">
+                        <resource id="Kkkonrad_Rma::cannedreplies_manage" title="Manage Canned Replies" sortOrder="10"/>
+                    </resource>
                     <resource id="Kkkonrad_Rma::config" title="RMA Configuration" sortOrder="90"/>
+
 
                 </resource>
             </resource>

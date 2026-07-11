@@ -3,9 +3,9 @@
       xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
     <argument name="data" xsi:type="array">
         <item name="js_config" xsi:type="array">
-            <item name="provider" xsi:type="string">kkkonrad_rma_reason_form.kkkonrad_rma_reason_form_data_source</item>
+            <item name="provider" xsi:type="string">kkkonrad_rma_resolution_form.kkkonrad_rma_resolution_form_data_source</item>
         </item>
-        <item name="label" xsi:type="string" translate="true">Return Reason</item>
+        <item name="label" xsi:type="string" translate="true">Return Resolution</item>
         <item name="template" xsi:type="string">templates/form/collapsible</item>
     </argument>
     <settings>
@@ -14,25 +14,25 @@
             <button name="delete" class="Kkkonrad\Rma\Block\Adminhtml\Rma\Edit\DeleteButton"/>
             <button name="back" class="Kkkonrad\Rma\Block\Adminhtml\Rma\Edit\BackButton"/>
         </buttons>
-        <namespace>kkkonrad_rma_reason_form</namespace>
+        <namespace>kkkonrad_rma_resolution_form</namespace>
         <dataScope>data</dataScope>
         <deps>
-            <dep>kkkonrad_rma_reason_form.kkkonrad_rma_reason_form_data_source</dep>
+            <dep>kkkonrad_rma_resolution_form.kkkonrad_rma_resolution_form_data_source</dep>
         </deps>
     </settings>
-    <dataSource name="kkkonrad_rma_reason_form_data_source">
+    <dataSource name="kkkonrad_rma_resolution_form_data_source">
         <argument name="data" xsi:type="array">
             <item name="js_config" xsi:type="array">
                 <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
             </item>
         </argument>
         <settings>
-            <submitUrl path="kkkonrad_rma/reason/save"/>
+            <submitUrl path="kkkonrad_rma/resolution/save"/>
         </settings>
-        <dataProvider class="Kkkonrad\Rma\Model\Reason\DataProvider" name="kkkonrad_rma_reason_form_data_source">
+        <dataProvider class="Kkkonrad\Rma\Model\Resolution\DataProvider" name="kkkonrad_rma_resolution_form_data_source">
             <settings>
-                <requestFieldName>reason_id</requestFieldName>
-                <primaryFieldName>reason_id</primaryFieldName>
+                <requestFieldName>resolution_id</requestFieldName>
+                <primaryFieldName>resolution_id</primaryFieldName>
             </settings>
         </dataProvider>
     </dataSource>
@@ -40,11 +40,11 @@
         <settings>
             <label translate="true">General Information</label>
         </settings>
-        <field name="reason_id" formElement="input">
+        <field name="resolution_id" formElement="input">
             <settings>
                 <dataType>text</dataType>
                 <visible>false</visible>
-                <dataScope>reason_id</dataScope>
+                <dataScope>resolution_id</dataScope>
             </settings>
         </field>
         <field name="label" sortOrder="10" formElement="input">
@@ -101,29 +101,5 @@
                 </checkbox>
             </formElements>
         </field>
-        <field name="require_image" sortOrder="50" formElement="checkbox">
-            <argument name="data" xsi:type="array">
-                <item name="config" xsi:type="array">
-                    <item name="default" xsi:type="number">0</item>
-                </item>
-            </argument>
-            <settings>
-                <dataType>boolean</dataType>
-                <label translate="true">Require Photo Attachment</label>
-                <dataScope>require_image</dataScope>
-            </settings>
-            <formElements>
-                <checkbox>
-                    <settings>
-                        <valueMap>
-                            <map name="false" xsi:type="number">0</map>
-                            <map name="true" xsi:type="number">1</map>
-                        </valueMap>
-                        <prefer>toggle</prefer>
-                    </settings>
-                </checkbox>
-            </formElements>
-        </field>
-
     </fieldset>
 </form>

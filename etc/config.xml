@@ -13,7 +13,11 @@
                 <custom_css></custom_css>
                 <custom_js></custom_js>
                 <allow_guest_rma>0</allow_guest_rma>
+                <terms_enabled>0</terms_enabled>
+                <terms_cms_page></terms_cms_page>
+                <excluded_customer_groups></excluded_customer_groups>
             </general>
+
 
 
             <email>

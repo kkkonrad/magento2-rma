@@ -21,7 +21,8 @@ class Search implements HttpPostActionInterface
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly CustomerSession $customerSession,
         private readonly MessageManagerInterface $messageManager,
-        private readonly Config $config
+        private readonly Config $config,
+        private readonly \Kkkonrad\Rma\Api\RmaManagementInterface $rmaManagement
     ) {
     }
 
@@ -62,6 +63,10 @@ class Search implements HttpPostActionInterface
                 throw new \Magento\Framework\Exception\LocalizedException(__('The order details do not match our records.'));
             }
 
+            if (!$this->rmaManagement->isOrderEligibleForRma((int)$order->getEntityId(), 0)) {
+                throw new \Magento\Framework\Exception\LocalizedException(__('This order is not eligible for a return.'));
+            }
+
             // Store order ID in guest session to authorize return creation
             $this->customerSession->setGuestRmaOrderId((int)$order->getEntityId());
 
@@ -72,4 +77,5 @@ class Search implements HttpPostActionInterface
             return $resultRedirect->setPath('rma/guest/index');
         }
     }
+
 }

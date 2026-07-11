@@ -48,6 +48,23 @@
              parent="Kkkonrad_Rma::rma_menu"
              action="kkkonrad_rma/policy/index"
              resource="Kkkonrad_Rma::policies_manage"/>
+
+        <add id="Kkkonrad_Rma::rma_resolutions"
+             title="Return Resolutions"
+             module="Kkkonrad_Rma"
+             sortOrder="60"
+             parent="Kkkonrad_Rma::rma_menu"
+             action="kkkonrad_rma/resolution/index"
+             resource="Kkkonrad_Rma::resolutions_manage"/>
+
+        <add id="Kkkonrad_Rma::rma_cannedreplies"
+             title="Canned Replies"
+             module="Kkkonrad_Rma"
+             sortOrder="70"
+             parent="Kkkonrad_Rma::rma_menu"
+             action="kkkonrad_rma/cannedreply/index"
+             resource="Kkkonrad_Rma::cannedreplies_manage"/>
     </menu>
+
 
 </config>
