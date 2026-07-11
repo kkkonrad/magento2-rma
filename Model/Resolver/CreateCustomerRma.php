@@ -39,6 +39,7 @@ class CreateCustomerRma implements ResolverInterface
         $orderId = (int) ($input['order_id'] ?? 0);
         $resolutionType = (string) ($input['resolution_type'] ?? '');
         $comment = (string) ($input['comment'] ?? '');
+        $termsAccepted = (bool) ($input['terms_accepted'] ?? false);
         $itemsData = $input['items'] ?? [];
 
         if (!$orderId) {
@@ -91,7 +92,7 @@ class CreateCustomerRma implements ResolverInterface
 
         // Create RMA
         try {
-            $rma = $this->rmaManagement->createFromOrder($orderId, $customerId, $resolutionType, $items, $comment);
+            $rma = $this->rmaManagement->createFromOrder($orderId, $customerId, $resolutionType, $items, $comment, $termsAccepted);
 
             // Auto-advance to pending_review
             $this->rmaManagement->changeStatus(

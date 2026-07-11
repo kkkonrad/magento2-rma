@@ -81,6 +81,9 @@ class Save implements HttpPostActionInterface
             if (!$orderId || !$resolutionType || empty($itemsData)) {
                 throw new LocalizedException(__('Please fill in all required fields.'));
             }
+            if ($this->config->isTermsEnabled() && !$this->request->getPost('terms_accepted')) {
+                throw new LocalizedException(__('You must accept the return terms and conditions.'));
+            }
 
             // Reason-Specific Attachment validation (backend)
             $requiredImageReasonIds = [];
@@ -126,7 +129,7 @@ class Save implements HttpPostActionInterface
                 $items[] = $item;
             }
 
-            $rma = $this->rmaManagement->createFromOrder($orderId, $customerId, $resolutionType, $items, $comment);
+            $rma = $this->rmaManagement->createFromOrder($orderId, $customerId, $resolutionType, $items, $comment, (bool) $this->request->getPost('terms_accepted'));
 
 
             // Auto-advance to pending_review so support team is notified immediately
@@ -182,11 +185,13 @@ class Save implements HttpPostActionInterface
             $detectedMime = $finfo->file($tmpPath) ?: 'application/octet-stream';
             $expectedMime = self::ALLOWED_MIME_TYPES[$ext] ?? null;
 
-            if (!in_array($ext, $allowed, true)
+            if (!isset(self::ALLOWED_MIME_TYPES[$ext])
+                || !in_array($ext, $allowed, true)
                 || $files['size'][$index] > $maxSize
-                || ($expectedMime !== null && $detectedMime !== $expectedMime)
+                || $detectedMime !== $expectedMime
+                || !is_uploaded_file($tmpPath)
             ) {
-                continue;
+                throw new LocalizedException(__('One or more attachments are invalid.'));
             }
 
             $safeFileName = $this->random->getUniqueHash() . '.' . $ext;

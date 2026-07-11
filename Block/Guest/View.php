@@ -6,6 +6,7 @@ namespace Kkkonrad\Rma\Block\Guest;
 use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\Config;
+use Kkkonrad\Rma\Model\GuestAccessToken;
 use Kkkonrad\Rma\Model\ResourceModel\RmaAttachment\CollectionFactory as AttachmentCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaMessage\CollectionFactory as MessageCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaStatusHistory\CollectionFactory as HistoryCollectionFactory;
@@ -33,6 +34,7 @@ class View extends Template
         private readonly Status $statusSource,
         private readonly Config $config,
         private readonly StatusValidator $statusValidator,
+        private readonly GuestAccessToken $guestAccessToken,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -50,8 +52,7 @@ class View extends Template
 
             try {
                 $rma = $this->rmaRepository->getById($rmaId);
-                $expectedHash = md5($rma->getRmaId() . $rma->getCustomerEmail() . $rma->getCreatedAt());
-                if ($hash !== $expectedHash) {
+                if (!$this->guestAccessToken->isValid($rma, $hash)) {
                     return null;
                 }
                 $this->rma = $rma;
@@ -159,7 +160,7 @@ class View extends Template
     public function getRmaHash(): string
     {
         $rma = $this->getRma();
-        return $rma ? md5($rma->getRmaId() . $rma->getCustomerEmail() . $rma->getCreatedAt()) : '';
+        return (string) $this->getRequest()->getParam('hash');
     }
 
     public function canCustomerCancel(): bool

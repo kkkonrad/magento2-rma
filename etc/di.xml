@@ -35,6 +35,8 @@
                 type="Kkkonrad\Rma\Model\RmaRepository"/>
     <preference for="Kkkonrad\Rma\Api\RmaManagementInterface"
                 type="Kkkonrad\Rma\Model\RmaManagement"/>
+    <preference for="Kkkonrad\Rma\Api\CustomerRmaManagementInterface"
+                type="Kkkonrad\Rma\Model\CustomerRmaManagement"/>
 
     <!-- ============================================================
          Virtual Types for Collections Processing

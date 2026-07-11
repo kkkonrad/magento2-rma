@@ -35,6 +35,8 @@ $addMessageUrl = $block->getAddMessageUrl();
 <div x-data="initRmaView"
      data-rma-id="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"
      data-add-message-url="<?= $escaper->escapeHtmlAttr($addMessageUrl) ?>"
+     data-cancel-url="<?= $escaper->escapeHtmlAttr($block->getCancelUrl()) ?>"
+     data-return-url="<?= $escaper->escapeHtmlAttr($block->getUrl('rma/index/index')) ?>"
      data-form-key="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"
      class="rma-view max-w-4xl mx-auto">
 
@@ -78,39 +80,19 @@ $addMessageUrl = $block->getAddMessageUrl();
                 </a>
             <?php endif; ?>
             <?php if ($block->canCustomerCancel()): ?>
-                <div x-data="{
-                        cancelUrl: '<?= $escaper->escapeJs($block->getCancelUrl()) ?>',
-                        formKey:   '<?= $escaper->escapeJs($block->getFormKey()) ?>',
-                        rmaId:     '<?= $escaper->escapeJs((string)$rma->getRmaId()) ?>',
-                        loading:   false,
-                        async cancelRma() {
-                            if (!confirm('<?= $escaper->escapeJs(__('Are you sure you want to cancel this return request? This action cannot be undone.')) ?>')) return;
-                            this.loading = true;
-                            const resp = await fetch(this.cancelUrl, {
-                                method: 'POST',
-                                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                                body: new URLSearchParams({rma_id: this.rmaId, form_key: this.formKey})
-                            });
-                            const data = await resp.json();
-                            if (data.success) {
-                                window.location.href = '<?= $escaper->escapeJs($block->getUrl('rma/index/index')) ?>';
-                            } else {
-                                alert(data.message || '<?= $escaper->escapeJs(__('An error occurred.')) ?>');
-                                this.loading = false;
-                            }
-                        }
-                    }">
-                    <button @click="cancelRma()"
-                            :disabled="loading"
+                <div>
+                    <button @click="cancelRma"
+                            :disabled="cancelLoading"
                             class="inline-flex items-center gap-2 px-4 py-2 border border-red-300 shadow-sm text-sm font-medium rounded-xl text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-400 transition-all disabled:opacity-60 disabled:cursor-not-allowed">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" x-show="!loading">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" x-show="isNotCancelLoading">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" x-show="loading">
+                        <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" x-show="cancelLoading">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                         </svg>
-                        <span x-text="loading ? '<?= $escaper->escapeJs(__('Cancelling...')) ?>' : '<?= $escaper->escapeJs(__('Cancel Return')) ?>'"></span>
+                        <span x-show="isNotCancelLoading"><?= $escaper->escapeHtml(__('Cancel Return')) ?></span>
+                        <span x-show="cancelLoading"><?= $escaper->escapeHtml(__('Cancelling...')) ?></span>
                     </button>
                 </div>
             <?php endif; ?>
@@ -191,7 +173,7 @@ $addMessageUrl = $block->getAddMessageUrl();
                             <button type="button"
                                     id="rma-send-message-btn"
                                     @click="sendMessage"
-                                    :disabled="isSendingMessage()"
+                                    :disabled="sendingMessage"
                                     class="flex-shrink-0 self-end px-5 py-3 bg-primary text-white text-sm
                                            font-medium rounded-xl hover:bg-primary-darker focus:outline-none
                                            focus:ring-2 focus:ring-primary transition-all disabled:opacity-60">
@@ -348,15 +330,42 @@ function initRmaView() {
         messageSent:      false,
         messageError:     '',
         sendingMessage:   false,
+        cancelLoading:    false,
 
         init() {
             this.rmaId          = this.$root.dataset.rmaId;
             this.addMessageUrl  = this.$root.dataset.addMessageUrl;
             this.formKey        = this.$root.dataset.formKey;
+            this.cancelUrl      = this.$root.dataset.cancelUrl;
+            this.returnUrl      = this.$root.dataset.returnUrl;
         },
 
         isSendingMessage() {
             return this.sendingMessage;
+        },
+
+        isNotCancelLoading() {
+            return !this.cancelLoading;
+        },
+
+        async cancelRma() {
+            if (!window.confirm('<?= $escaper->escapeJs(__('Are you sure you want to cancel this return request? This action cannot be undone.')) ?>')) return;
+            this.cancelLoading = true;
+            try {
+                const response = await fetch(this.cancelUrl, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: new URLSearchParams({rma_id: this.rmaId, form_key: this.formKey})
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = this.returnUrl;
+                    return;
+                }
+                window.alert(data.message || '<?= $escaper->escapeJs(__('An error occurred.')) ?>');
+            } finally {
+                this.cancelLoading = false;
+            }
         },
 
         setNewMessage() {

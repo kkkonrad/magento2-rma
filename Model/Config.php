@@ -75,7 +75,10 @@ class Config
             ScopeInterface::SCOPE_STORE,
             $storeId
         );
-        return array_map('trim', explode(',', (string) $value));
+        return array_values(array_filter(array_map(
+            static fn(string $extension): string => strtolower(trim($extension)),
+            explode(',', (string) $value)
+        )));
     }
 
     public function getAutoCancelDays(?int $storeId = null): int
@@ -169,7 +172,7 @@ class Config
             ScopeInterface::SCOPE_STORE,
             $storeId
         );
-        if ($value === null) {
+        if ($value === null || trim((string) $value) === '') {
             return ['complete'];
         }
         return array_filter(array_map('trim', explode(',', (string) $value)));
@@ -284,6 +287,4 @@ class Config
         return array_map('intval', explode(',', (string)$value));
     }
 }
-
-
 

@@ -382,7 +382,8 @@ $uploadUrl       = $block->getUploadUrl();
                 <div class="flex items-start gap-3">
                     <input type="checkbox"
                            id="terms-accept"
-                           x-model="termsAccepted"
+                           :checked="termsAccepted"
+                           @change="setTermsAccepted"
                            class="mt-1 rounded text-primary focus:ring-primary h-4 w-4 border-gray-300"/>
                     <label for="terms-accept" class="text-sm text-gray-600 font-medium">
                         <?= $escaper->escapeHtml(__('I accept the')) ?>
@@ -409,11 +410,11 @@ $uploadUrl       = $block->getUploadUrl();
                         id="rma-submit-btn"
                         @click="submitForm"
                         :disabled="isSubmitting"
-                        :class="isSubmitting() ? 'opacity-60 cursor-not-allowed' : ''"
+                        :class="submittingClass"
                         class="inline-flex items-center gap-2 px-8 py-3 bg-primary text-white font-semibold
                                text-sm rounded-xl shadow-sm hover:bg-primary-darker focus:outline-none
                                focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200">
-                    <template x-if="isSubmitting()">
+                    <template x-if="submitting">
                         <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
@@ -461,6 +462,10 @@ function initRmaCreate() {
 
         isSubmitting() {
             return this.submitting;
+        },
+
+        get submittingClass() {
+            return this.submitting ? 'opacity-60 cursor-not-allowed' : '';
         },
 
         // Order selection
@@ -555,6 +560,10 @@ function initRmaCreate() {
 
         setComment() {
             this.comment = this.$el.value;
+        },
+
+        setTermsAccepted() {
+            this.termsAccepted = this.$el.checked;
         },
 
         // File handling
@@ -659,6 +668,7 @@ function initRmaCreate() {
                 formData.append('resolution_type', this.resolutionType);
                 formData.append('comment', this.comment);
                 formData.append('items', JSON.stringify(this.selectedItems));
+                formData.append('terms_accepted', this.termsAccepted ? '1' : '0');
 
                 this.attachments.forEach((a, i) => {
                     formData.append(`attachments[${i}]`, a.file, a.name);

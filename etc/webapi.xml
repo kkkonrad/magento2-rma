@@ -19,15 +19,18 @@
 
     <!-- Get specific RMA (customer must own it — validated in repository) -->
     <route url="/V1/rma/mine/:rmaId" method="GET">
-        <service class="Kkkonrad\Rma\Api\RmaRepositoryInterface" method="getById"/>
+        <service class="Kkkonrad\Rma\Api\RmaRepositoryInterface" method="getByIdForCustomer"/>
         <resources>
             <resource ref="self"/>
         </resources>
+        <data>
+            <parameter name="customerId" force="true">%customer_id%</parameter>
+        </data>
     </route>
 
     <!-- Create new RMA -->
     <route url="/V1/rma/create" method="POST">
-        <service class="Kkkonrad\Rma\Api\RmaManagementInterface" method="createFromOrder"/>
+        <service class="Kkkonrad\Rma\Api\CustomerRmaManagementInterface" method="createFromOrder"/>
         <resources>
             <resource ref="self"/>
         </resources>
@@ -35,7 +38,7 @@
 
     <!-- Add message to RMA -->
     <route url="/V1/rma/:rmaId/message" method="POST">
-        <service class="Kkkonrad\Rma\Api\RmaManagementInterface" method="addMessage"/>
+        <service class="Kkkonrad\Rma\Api\CustomerRmaManagementInterface" method="addMessage"/>
         <resources>
             <resource ref="self"/>
         </resources>

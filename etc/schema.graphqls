@@ -116,6 +116,7 @@ input CreateCustomerRmaInput @doc(description: "Input fields for creating a cust
     order_id: Int! @doc(description: "Order entity ID")
     resolution_type: String! @doc(description: "Desired resolution (refund, exchange, repair, voucher)")
     comment: String @doc(description: "Optional customer comment")
+    terms_accepted: Boolean! @doc(description: "Whether the customer accepted the return terms")
     items: [CreateCustomerRmaItemInput!]! @doc(description: "Items to return")
 }
 

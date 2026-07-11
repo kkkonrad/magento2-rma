@@ -5,6 +5,7 @@ namespace Kkkonrad\Rma\Controller\Guest;
 
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\Config;
+use Kkkonrad\Rma\Model\GuestAccessToken;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\RedirectFactory;
@@ -19,7 +20,8 @@ class View implements HttpGetActionInterface
         private readonly RequestInterface $request,
         private readonly RmaRepositoryInterface $rmaRepository,
         private readonly MessageManagerInterface $messageManager,
-        private readonly Config $config
+        private readonly Config $config,
+        private readonly GuestAccessToken $guestAccessToken
     ) {
     }
 
@@ -36,8 +38,7 @@ class View implements HttpGetActionInterface
             $rma = $this->rmaRepository->getById($rmaId);
 
             // Secure Hash Authentication (avoids IDOR vulnerabilities)
-            $expectedHash = md5($rma->getRmaId() . $rma->getCustomerEmail() . $rma->getCreatedAt());
-            if ($hash !== $expectedHash) {
+            if (!$this->guestAccessToken->isValid($rma, $hash)) {
                 throw new \Magento\Framework\Exception\LocalizedException(__('Access denied. Invalid tracking link.'));
             }
 

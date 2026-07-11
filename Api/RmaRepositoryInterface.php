@@ -35,6 +35,16 @@ interface RmaRepositoryInterface
     public function getById(int $rmaId): RmaInterface;
 
     /**
+     * Return an RMA only when it belongs to the supplied customer.
+     *
+     * @param int $rmaId
+     * @param int $customerId
+     * @return \Kkkonrad\Rma\Api\Data\RmaInterface
+     * @throws NoSuchEntityException
+     */
+    public function getByIdForCustomer(int $rmaId, int $customerId): RmaInterface;
+
+    /**
      * Get RMA by increment ID
      *
      * @param string $incrementId

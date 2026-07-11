@@ -32,7 +32,8 @@ interface RmaManagementInterface
         int $customerId,
         string $resolutionType,
         array $items,
-        ?string $comment = null
+        ?string $comment = null,
+        bool $termsAccepted = false
     ): RmaInterface;
 
     /**

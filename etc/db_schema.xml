@@ -22,6 +22,8 @@
         <column xsi:type="timestamp" name="resolved_at" nullable="true" comment="Resolved At"/>
         <column xsi:type="varchar" name="shipping_label" nullable="true" length="512" comment="Shipping Label File Path"/>
         <column xsi:type="int" name="return_address_id" unsigned="true" nullable="true" comment="Return Address ID"/>
+        <column xsi:type="varchar" name="guest_access_token_hash" nullable="true" length="64" comment="Guest Access Token Hash"/>
+        <column xsi:type="timestamp" name="guest_access_token_expires_at" nullable="true" comment="Guest Access Token Expires At"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="rma_id"/>
         </constraint>
@@ -265,5 +267,4 @@
     </table>
 
 </schema>
-
 

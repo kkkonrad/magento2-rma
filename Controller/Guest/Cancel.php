@@ -7,9 +7,11 @@ use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\Config;
+use Kkkonrad\Rma\Model\GuestAccessToken;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Framework\Exception\LocalizedException;
 
 class Cancel implements HttpPostActionInterface
@@ -19,7 +21,9 @@ class Cancel implements HttpPostActionInterface
         private readonly JsonFactory $resultJsonFactory,
         private readonly RmaRepositoryInterface $rmaRepository,
         private readonly RmaManagementInterface $rmaManagement,
-        private readonly Config $config
+        private readonly Config $config,
+        private readonly GuestAccessToken $guestAccessToken,
+        private readonly FormKeyValidator $formKeyValidator
     ) {
     }
 
@@ -30,13 +34,15 @@ class Cancel implements HttpPostActionInterface
         $hash  = (string)$this->request->getPost('hash');
 
         try {
+            if (!$this->formKeyValidator->validate($this->request)) {
+                throw new LocalizedException(__('Invalid security token. Please refresh and try again.'));
+            }
             if (!$this->config->allowGuestRma()) {
                 throw new LocalizedException(__('Guest Returns are not allowed.'));
             }
 
             $rma = $this->rmaRepository->getById($rmaId);
-            $expectedHash = md5($rma->getRmaId() . $rma->getCustomerEmail() . $rma->getCreatedAt());
-            if ($hash !== $expectedHash) {
+            if (!$this->guestAccessToken->isValid($rma, $hash)) {
                 throw new LocalizedException(__('Access denied. Invalid tracking link.'));
             }
 

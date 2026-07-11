@@ -63,7 +63,8 @@ class SaveAdminRma extends Action
                 (int)$order->getCustomerId(),
                 $resolutionType,
                 $items,
-                $comment
+                $comment,
+                true
             );
 
             // Auto-move to pending_review

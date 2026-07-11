@@ -96,7 +96,8 @@ class Create extends Action
                 (int)$order->getCustomerId(),
                 RmaInterface::RESOLUTION_REFUND,
                 $rmaItems,
-                (string) __('Created by admin from backend.')
+                (string) __('Created by admin from backend.'),
+                true
             );
 
             // Auto-move to pending_review for admin

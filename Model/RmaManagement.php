@@ -12,7 +12,10 @@ use Kkkonrad\Rma\Model\ResourceModel\RmaItem as RmaItemResource;
 use Kkkonrad\Rma\Model\ResourceModel\RmaItem\CollectionFactory as RmaItemCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaMessage as RmaMessageResource;
 use Kkkonrad\Rma\Model\ResourceModel\RmaStatusHistory as RmaStatusHistoryResource;
+use Kkkonrad\Rma\Model\ResourceModel\RmaReason as RmaReasonResource;
+use Kkkonrad\Rma\Model\ResourceModel\RmaCondition as RmaConditionResource;
 use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Stdlib\DateTime\DateTime as MagentoDateTime;
@@ -44,7 +47,12 @@ class RmaManagement implements RmaManagementInterface
         private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaAddress\CollectionFactory $rmaAddressCollectionFactory,
         private readonly \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         private readonly \Kkkonrad\Rma\Model\RmaPolicyFactory $policyFactory,
-        private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaPolicy $policyResource
+        private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaPolicy $policyResource,
+        private readonly ResourceConnection $resourceConnection,
+        private readonly RmaReasonFactory $rmaReasonFactory,
+        private readonly RmaReasonResource $rmaReasonResource,
+        private readonly RmaConditionFactory $rmaConditionFactory,
+        private readonly RmaConditionResource $rmaConditionResource
     ) {
     }
 
@@ -58,7 +66,8 @@ class RmaManagement implements RmaManagementInterface
         int $customerId,
         string $resolutionType,
         array $items,
-        ?string $comment = null
+        ?string $comment = null,
+        bool $termsAccepted = false
     ): RmaInterface {
         // Fix 10: Load order once and reuse — eliminates the second load in isOrderEligibleForRma()
         try {
@@ -70,9 +79,32 @@ class RmaManagement implements RmaManagementInterface
         if (!$this->isOrderEligibleForRmaObject($order, $customerId)) {
             throw new LocalizedException(__('This order is not eligible for a return.'));
         }
+        if (!$this->config->isEnabled((int) $order->getStoreId())) {
+            throw new LocalizedException(__('RMA is currently unavailable.'));
+        }
+        if ($this->config->isTermsEnabled((int) $order->getStoreId()) && !$termsAccepted) {
+            throw new LocalizedException(__('You must accept the return terms and conditions.'));
+        }
+        if (!in_array($resolutionType, [
+            RmaInterface::RESOLUTION_REFUND,
+            RmaInterface::RESOLUTION_EXCHANGE,
+            RmaInterface::RESOLUTION_REPAIR,
+            RmaInterface::RESOLUTION_VOUCHER,
+        ], true)) {
+            throw new LocalizedException(__('Invalid resolution type.'));
+        }
 
         // Fix 6: Race condition guard — prevent duplicate active RMAs for the same order
         $this->assertNoDuplicateActiveRma($orderId, $customerId);
+
+        $orderItemIds = [];
+        foreach ($items as $itemData) {
+            $orderItemId = $itemData->getOrderItemId();
+            if (isset($orderItemIds[$orderItemId])) {
+                throw new LocalizedException(__('An order item can only be included once in a return request.'));
+            }
+            $orderItemIds[$orderItemId] = true;
+        }
 
         /** @var Rma $rma */
         $rma = $this->rmaFactory->create();
@@ -97,15 +129,19 @@ class RmaManagement implements RmaManagementInterface
         }
 
 
-        $this->rmaRepository->save($rma);
-
-        // Save items — validate each against order items (Fix 4)
-        foreach ($items as $itemData) {
-            $this->saveRmaItem($rma->getRmaId(), $itemData, $order);
+        $connection = $this->resourceConnection->getConnection();
+        $connection->beginTransaction();
+        try {
+            $this->rmaRepository->save($rma);
+            foreach ($items as $itemData) {
+                $this->saveRmaItem($rma->getRmaId(), $itemData, $order);
+            }
+            $this->addStatusHistory($rma->getRmaId(), null, RmaInterface::STATUS_NEW, null, 'customer', $customerId);
+            $connection->commit();
+        } catch (\Throwable $e) {
+            $connection->rollBack();
+            throw $e;
         }
-
-        // Add initial status history
-        $this->addStatusHistory($rma->getRmaId(), null, RmaInterface::STATUS_NEW, null, 'customer', $customerId);
 
         // Emit event
         $this->eventManager->dispatch('kkkonrad_rma_created', [
@@ -424,13 +460,28 @@ class RmaManagement implements RmaManagementInterface
             throw new LocalizedException(__('Return quantity must be greater than zero.'));
         }
 
-        $orderedQty = (float) $matchedOrderItem->getQtyOrdered();
-        if ($requestedQty > $orderedQty) {
+        $availableQty = max(0.0, (float) $matchedOrderItem->getQtyOrdered() - (float) $matchedOrderItem->getQtyRefunded());
+        if ($requestedQty > $availableQty) {
             throw new LocalizedException(
-                __('Return quantity (%1) cannot exceed ordered quantity (%2) for "%3".',
-                    $requestedQty, $orderedQty, $matchedOrderItem->getName())
+                __('Return quantity (%1) cannot exceed available quantity (%2) for "%3".',
+                    $requestedQty, $availableQty, $matchedOrderItem->getName())
             );
         }
+
+        $this->validateDictionaryValue(
+            $itemData->getReasonId(),
+            $this->rmaReasonFactory,
+            $this->rmaReasonResource,
+            'reason_id',
+            __('Invalid or inactive return reason.')
+        );
+        $this->validateDictionaryValue(
+            $itemData->getConditionId(),
+            $this->rmaConditionFactory,
+            $this->rmaConditionResource,
+            'condition_id',
+            __('Invalid or inactive item condition.')
+        );
 
         // Excluded SKU check — product cannot be returned if configured as excluded
         $excludedSkus = $this->config->getExcludedSkus((int) $order->getStoreId());
@@ -473,6 +524,24 @@ class RmaManagement implements RmaManagementInterface
 
 
         $this->rmaItemResource->save($rmaItem);
+    }
+
+    private function validateDictionaryValue(
+        ?int $id,
+        object $factory,
+        object $resource,
+        string $idField,
+        \Magento\Framework\Phrase $errorMessage
+    ): void {
+        if ($id === null) {
+            return;
+        }
+
+        $item = $factory->create();
+        $resource->load($item, $id, $idField);
+        if (!(int) $item->getData('is_active')) {
+            throw new LocalizedException($errorMessage);
+        }
     }
 
     /**

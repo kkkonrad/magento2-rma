@@ -60,6 +60,11 @@ class RmaManagementTest extends TestCase
     private \Magento\Catalog\Api\ProductRepositoryInterface&MockObject $productRepository;
     private \Kkkonrad\Rma\Model\RmaPolicyFactory&MockObject $policyFactory;
     private \Kkkonrad\Rma\Model\ResourceModel\RmaPolicy&MockObject $policyResource;
+    private \Magento\Framework\App\ResourceConnection&MockObject $resourceConnection;
+    private \Kkkonrad\Rma\Model\RmaReasonFactory&MockObject $rmaReasonFactory;
+    private \Kkkonrad\Rma\Model\ResourceModel\RmaReason&MockObject $rmaReasonResource;
+    private \Kkkonrad\Rma\Model\RmaConditionFactory&MockObject $rmaConditionFactory;
+    private \Kkkonrad\Rma\Model\ResourceModel\RmaCondition&MockObject $rmaConditionResource;
 
 
     protected function setUp(): void
@@ -85,6 +90,11 @@ class RmaManagementTest extends TestCase
         $this->productRepository    = $this->createMock(\Magento\Catalog\Api\ProductRepositoryInterface::class);
         $this->policyFactory        = $this->createMock(\Kkkonrad\Rma\Model\RmaPolicyFactory::class);
         $this->policyResource       = $this->createMock(\Kkkonrad\Rma\Model\ResourceModel\RmaPolicy::class);
+        $this->resourceConnection   = $this->createMock(\Magento\Framework\App\ResourceConnection::class);
+        $this->rmaReasonFactory      = $this->createMock(\Kkkonrad\Rma\Model\RmaReasonFactory::class);
+        $this->rmaReasonResource     = $this->createMock(\Kkkonrad\Rma\Model\ResourceModel\RmaReason::class);
+        $this->rmaConditionFactory   = $this->createMock(\Kkkonrad\Rma\Model\RmaConditionFactory::class);
+        $this->rmaConditionResource  = $this->createMock(\Kkkonrad\Rma\Model\ResourceModel\RmaCondition::class);
 
         $this->rmaManagement = new RmaManagement(
             $this->rmaRepository,
@@ -107,7 +117,12 @@ class RmaManagementTest extends TestCase
             $this->rmaAddressCollectionFactory,
             $this->productRepository,
             $this->policyFactory,
-            $this->policyResource
+            $this->policyResource,
+            $this->resourceConnection,
+            $this->rmaReasonFactory,
+            $this->rmaReasonResource,
+            $this->rmaConditionFactory,
+            $this->rmaConditionResource
         );
     }
 

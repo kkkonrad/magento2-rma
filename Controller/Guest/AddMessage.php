@@ -7,6 +7,7 @@ use Kkkonrad\Rma\Api\Data\RmaMessageInterface;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\Config;
+use Kkkonrad\Rma\Model\GuestAccessToken;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
@@ -21,7 +22,8 @@ class AddMessage implements HttpPostActionInterface
         private readonly RmaRepositoryInterface $rmaRepository,
         private readonly RmaManagementInterface $rmaManagement,
         private readonly FormKeyValidator $formKeyValidator,
-        private readonly Config $config
+        private readonly Config $config,
+        private readonly GuestAccessToken $guestAccessToken
     ) {
     }
 
@@ -48,8 +50,7 @@ class AddMessage implements HttpPostActionInterface
 
             // Secure Hash Authentication
             $rma = $this->rmaRepository->getById($rmaId);
-            $expectedHash = md5($rma->getRmaId() . $rma->getCustomerEmail() . $rma->getCreatedAt());
-            if ($hash !== $expectedHash) {
+            if (!$this->guestAccessToken->isValid($rma, $hash)) {
                 throw new LocalizedException(__('Access denied. Invalid tracking link.'));
             }
 

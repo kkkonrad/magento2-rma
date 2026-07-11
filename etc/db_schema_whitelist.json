@@ -16,7 +16,9 @@
             "updated_at": true,
             "resolved_at": true,
             "shipping_label": true,
-            "return_address_id": true
+            "return_address_id": true,
+            "guest_access_token_hash": true,
+            "guest_access_token_expires_at": true
         },
         "constraint": {
             "PRIMARY": true,

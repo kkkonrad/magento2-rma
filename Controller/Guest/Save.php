@@ -7,6 +7,8 @@ use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\Data\RmaItemInterfaceFactory;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Kkkonrad\Rma\Model\Config;
+use Kkkonrad\Rma\Model\GuestAccessToken;
+use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\ResourceModel\RmaAttachment;
 use Kkkonrad\Rma\Model\RmaAttachmentFactory;
 use Magento\Customer\Model\Session as CustomerSession;
@@ -51,6 +53,8 @@ class Save implements HttpPostActionInterface
         private readonly FormKeyValidator $formKeyValidator,
         private readonly UrlInterface $url,
         private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaReason\CollectionFactory $reasonCollectionFactory
+        ,private readonly GuestAccessToken $guestAccessToken
+        ,private readonly RmaRepositoryInterface $rmaRepository
     ) {
     }
 
@@ -81,6 +85,9 @@ class Save implements HttpPostActionInterface
 
             if (!$resolutionType || empty($itemsData)) {
                 throw new LocalizedException(__('Please fill in all required fields.'));
+            }
+            if ($this->config->isTermsEnabled() && !$this->request->getPost('terms_accepted')) {
+                throw new LocalizedException(__('You must accept the return terms and conditions.'));
             }
 
             // Reason-Specific Attachment validation (backend)
@@ -128,7 +135,7 @@ class Save implements HttpPostActionInterface
             }
 
             // Create RMA with customer_id = 0 (Guest)
-            $rma = $this->rmaManagement->createFromOrder($orderId, 0, $resolutionType, $items, $comment);
+            $rma = $this->rmaManagement->createFromOrder($orderId, 0, $resolutionType, $items, $comment, (bool) $this->request->getPost('terms_accepted'));
 
 
             // Auto-advance to pending_review
@@ -144,10 +151,11 @@ class Save implements HttpPostActionInterface
             $this->processAttachments($rma->getRmaId());
 
             // Clear guest session variable after creation
-            $this->customerSession->unsGuestRmaOrderId();
+            $this->customerSession->setGuestRmaOrderId(null);
 
             // Generate secure guest tracking link
-            $hash = md5($rma->getRmaId() . $rma->getCustomerEmail() . $rma->getCreatedAt());
+            $hash = $this->guestAccessToken->issue($rma);
+            $this->rmaRepository->save($rma);
 
             return $result->setData([
                 'success'      => true,
@@ -191,11 +199,13 @@ class Save implements HttpPostActionInterface
             $detectedMime = $finfo->file($tmpPath) ?: 'application/octet-stream';
             $expectedMime = self::ALLOWED_MIME_TYPES[$ext] ?? null;
 
-            if (!in_array($ext, $allowed, true)
+            if (!isset(self::ALLOWED_MIME_TYPES[$ext])
+                || !in_array($ext, $allowed, true)
                 || $files['size'][$index] > $maxSize
-                || ($expectedMime !== null && $detectedMime !== $expectedMime)
+                || $detectedMime !== $expectedMime
+                || !is_uploaded_file($tmpPath)
             ) {
-                continue;
+                throw new LocalizedException(__('One or more attachments are invalid.'));
             }
 
             $safeFileName = $this->random->getUniqueHash() . '.' . $ext;

@@ -60,6 +60,15 @@ class RmaRepository implements RmaRepositoryInterface
         return $rma;
     }
 
+    public function getByIdForCustomer(int $rmaId, int $customerId): RmaInterface
+    {
+        $rma = $this->getById($rmaId);
+        if ((int) $rma->getCustomerId() !== $customerId) {
+            throw new NoSuchEntityException(__('RMA with ID "%1" does not exist.', $rmaId));
+        }
+        return $rma;
+    }
+
     /**
      * @inheritDoc
      */
