@@ -46,14 +46,22 @@ class SaveAdminRma extends Action
             // Build RmaItem objects
             $items = [];
             foreach ($itemsData as $itemData) {
+                $reasonId = (int)($itemData['reason_id'] ?? 0);
+                $conditionId = (int)($itemData['condition_id'] ?? 0);
+
+                if ($reasonId <= 0) {
+                    throw new LocalizedException(__('Please select a return reason for every selected item.'));
+                }
+                if ($conditionId <= 0) {
+                    throw new LocalizedException(__('Please select an item condition for every selected item.'));
+                }
+
                 /** @var \Kkkonrad\Rma\Api\Data\RmaItemInterface $item */
                 $item = $this->rmaItemFactory->create();
                 $item->setOrderItemId((int)($itemData['order_item_id'] ?? 0))
                     ->setQty((float)($itemData['qty'] ?? 1))
-                    ->setReasonId(isset($itemData['reason_id']) && $itemData['reason_id'] !== ''
-                        ? (int)$itemData['reason_id'] : null)
-                    ->setConditionId(isset($itemData['condition_id']) && $itemData['condition_id'] !== ''
-                        ? (int)$itemData['condition_id'] : null);
+                    ->setReasonId($reasonId)
+                    ->setConditionId($conditionId);
                 $items[] = $item;
             }
 

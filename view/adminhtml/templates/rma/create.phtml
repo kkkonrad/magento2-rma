@@ -250,6 +250,18 @@ require(['jquery'], function ($) {
                 return false;
             }
 
+            if (!reasonId) {
+                alert('<?= $escaper->escapeJs(__('Please select a return reason for every selected item.')) ?>');
+                hasError = true;
+                return false;
+            }
+
+            if (!conditionId) {
+                alert('<?= $escaper->escapeJs(__('Please select an item condition for every selected item.')) ?>');
+                hasError = true;
+                return false;
+            }
+
             selectedItems.push({
                 order_item_id: itemId,
                 qty: qty,
