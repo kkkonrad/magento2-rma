@@ -30,7 +30,7 @@ class StatusValidatorTest extends TestCase
         $this->assertTrue(true); // Explicit assertion
     }
 
-    public function validTransitionsProvider(): array
+    public static function validTransitionsProvider(): array
     {
         return [
             'new → pending_review'         => [RmaInterface::STATUS_NEW, RmaInterface::STATUS_PENDING_REVIEW],
@@ -56,7 +56,7 @@ class StatusValidatorTest extends TestCase
         $this->validator->validate($from, $to);
     }
 
-    public function invalidTransitionsProvider(): array
+    public static function invalidTransitionsProvider(): array
     {
         return [
             'new → approved'               => [RmaInterface::STATUS_NEW, RmaInterface::STATUS_APPROVED],

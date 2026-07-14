@@ -6,6 +6,7 @@
         <referenceContainer name="content">
             <block class="Kkkonrad\Rma\Block\Customer\Rma\ListRma"
                    name="kkkonrad_rma_list"
+                   cacheable="false"
                    template="Kkkonrad_Rma::customer/rma/list.phtml"/>
             <block class="Kkkonrad\Rma\Block\CustomHtml"
                    name="kkkonrad_rma_custom_html"

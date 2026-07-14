@@ -197,5 +197,23 @@
         "constraint": {
             "PRIMARY": true
         }
+    },
+    "kkkonrad_rma_policy": {
+        "column": {
+            "policy_id": true,
+            "name": true,
+            "days_refund": true,
+            "days_exchange": true,
+            "days_repair": true,
+            "days_voucher": true,
+            "terms_conditions": true,
+            "is_active": true
+        },
+        "index": {
+            "KKKONRAD_RMA_POLICY_IS_ACTIVE": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
     }
 }

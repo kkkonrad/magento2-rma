@@ -89,7 +89,6 @@
         </field>
         <field name="country_id" sortOrder="50" formElement="select">
             <settings>
-                <options class="Magento\Directory\Model\Config\Source\Country"/>
                 <validation>
                     <rule name="required-entry" xsi:type="boolean">true</rule>
                 </validation>
@@ -97,6 +96,13 @@
                 <label translate="true">Country</label>
                 <dataScope>country_id</dataScope>
             </settings>
+            <formElements>
+                <select>
+                    <settings>
+                        <options class="Magento\Directory\Model\Config\Source\Country"/>
+                    </settings>
+                </select>
+            </formElements>
         </field>
         <field name="phone" sortOrder="60" formElement="input">
             <settings>

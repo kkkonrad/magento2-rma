@@ -6,11 +6,11 @@
         <referenceBlock name="customer_account_navigation">
             <block class="Magento\Framework\View\Element\Html\Link\Current"
                    name="customer-account-navigation-rma-link"
-                   template="Kkkonrad_Rma::customer/account/navigation/link.phtml"
-                   sortOrder="200">
+                   template="Kkkonrad_Rma::customer/account/navigation/link.phtml">
                 <arguments>
                     <argument name="label" xsi:type="string" translate="true">My Returns</argument>
                     <argument name="path" xsi:type="string">rma/index/index</argument>
+                    <argument name="sortOrder" xsi:type="number">200</argument>
                 </arguments>
             </block>
         </referenceBlock>

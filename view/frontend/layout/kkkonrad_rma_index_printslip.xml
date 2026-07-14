@@ -5,7 +5,7 @@
     </head>
     <body>
         <referenceContainer name="content">
-            <block class="Kkkonrad\Rma\Block\Customer\Rma\PrintSlip" name="rma.print.slip" template="Kkkonrad_Rma::customer/rma/print.phtml"/>
+            <block class="Kkkonrad\Rma\Block\Customer\Rma\PrintSlip" name="rma.print.slip" template="Kkkonrad_Rma::customer/rma/print.phtml" cacheable="false"/>
         </referenceContainer>
     </body>
 </page>
