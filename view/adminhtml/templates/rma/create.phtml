@@ -113,8 +113,8 @@ $resolutions = $block->getResolutionTypes();
 
 <script>
 require(['jquery'], function ($) {
-    var searchUrl = '<?= $block->getSearchOrderUrl() ?>';
-    var saveUrl   = '<?= $block->getSaveUrl() ?>';
+    var searchUrl = '<?= $escaper->escapeJs($block->getSearchOrderUrl()) ?>';
+    var saveUrl   = '<?= $escaper->escapeJs($block->getSaveUrl()) ?>';
     var orderData = null;
 
     $('#search-order-btn').on('click', function () {
@@ -197,7 +197,7 @@ require(['jquery'], function ($) {
                 var rSelect = $('<select class="admin__control-select item-reason" disabled>');
                 rSelect.append('<option value=""><?= $escaper->escapeJs(__('Select...')) ?></option>');
                 <?php foreach ($reasons as $reason): ?>
-                    rSelect.append('<option value="<?= $reason['value'] ?>"><?= $escaper->escapeJs($reason['label']) ?></option>');
+                    rSelect.append('<option value="<?= (int)$reason['value'] ?>"><?= $escaper->escapeJs($reason['label']) ?></option>');
                 <?php endforeach; ?>
                 reasonTd.append(rSelect);
             } else {
@@ -211,7 +211,7 @@ require(['jquery'], function ($) {
                 var cSelect = $('<select class="admin__control-select item-condition" disabled>');
                 cSelect.append('<option value=""><?= $escaper->escapeJs(__('Select...')) ?></option>');
                 <?php foreach ($conditions as $cond): ?>
-                    cSelect.append('<option value="<?= $cond['value'] ?>"><?= $escaper->escapeJs($cond['label']) ?></option>');
+                    cSelect.append('<option value="<?= (int)$cond['value'] ?>"><?= $escaper->escapeJs($cond['label']) ?></option>');
                 <?php endforeach; ?>
                 conditionTd.append(cSelect);
             } else {

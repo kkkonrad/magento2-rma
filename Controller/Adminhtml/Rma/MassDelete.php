@@ -7,10 +7,11 @@ use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\ResourceModel\Rma\CollectionFactory;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Ui\Component\MassAction\Filter;
 use Psr\Log\LoggerInterface;
 
-class MassDelete extends Action
+class MassDelete extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_delete';
 

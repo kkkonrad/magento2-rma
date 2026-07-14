@@ -7,9 +7,10 @@ use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Kkkonrad\Rma\Api\Data\RmaMessageInterface;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Exception\LocalizedException;
 
-class ChangeStatus extends Action
+class ChangeStatus extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_change_status';
 

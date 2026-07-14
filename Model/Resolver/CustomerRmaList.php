@@ -39,7 +39,7 @@ class CustomerRmaList implements ResolverInterface
         $customer   = $this->getCustomer->execute($context);
         $customerId = (int) $customer->getId();
 
-        $pageSize    = max(1, (int) ($args['pageSize'] ?? 10));
+        $pageSize    = min(100, max(1, (int) ($args['pageSize'] ?? 10)));
         $currentPage = max(1, (int) ($args['currentPage'] ?? 1));
 
         $sortOrder = $this->sortOrderBuilder

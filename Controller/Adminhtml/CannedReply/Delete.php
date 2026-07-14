@@ -7,8 +7,9 @@ use Kkkonrad\Rma\Model\CannedReplyFactory;
 use Kkkonrad\Rma\Model\ResourceModel\CannedReply as CannedReplyResource;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 
-class Delete extends Action
+class Delete extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::cannedreplies_manage';
 

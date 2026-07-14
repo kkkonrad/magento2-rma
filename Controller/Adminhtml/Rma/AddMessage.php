@@ -7,9 +7,10 @@ use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Kkkonrad\Rma\Api\Data\RmaMessageInterface;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Exception\LocalizedException;
 
-class AddMessage extends Action
+class AddMessage extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_edit';
 

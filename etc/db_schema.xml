@@ -2,6 +2,13 @@
 <schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
 
+    <table name="kkkonrad_rma_sequence" resource="default" engine="innodb" comment="RMA Increment ID Sequence">
+        <column xsi:type="int" name="sequence_value" unsigned="true" nullable="false" identity="true" comment="Sequence Value"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="sequence_value"/>
+        </constraint>
+    </table>
+
     <!-- ============================================================
          RMA Header Table
     ============================================================ -->

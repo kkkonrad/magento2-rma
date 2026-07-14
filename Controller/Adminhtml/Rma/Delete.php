@@ -6,9 +6,10 @@ namespace Kkkonrad\Rma\Controller\Adminhtml\Rma;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Exception\LocalizedException;
 
-class Delete extends Action
+class Delete extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_delete';
 

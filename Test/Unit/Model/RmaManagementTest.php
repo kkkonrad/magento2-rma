@@ -22,6 +22,7 @@ use Kkkonrad\Rma\Model\ResourceModel\RmaMessage as RmaMessageResource;
 use Kkkonrad\Rma\Model\ResourceModel\RmaStatusHistory as RmaStatusHistoryResource;
 use Kkkonrad\Rma\Model\StatusValidator;
 use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\CreditmemoManagementInterface;
@@ -65,6 +66,7 @@ class RmaManagementTest extends TestCase
     private \Kkkonrad\Rma\Model\ResourceModel\RmaReason&MockObject $rmaReasonResource;
     private \Kkkonrad\Rma\Model\RmaConditionFactory&MockObject $rmaConditionFactory;
     private \Kkkonrad\Rma\Model\ResourceModel\RmaCondition&MockObject $rmaConditionResource;
+    private AdapterInterface&MockObject $connection;
 
 
     protected function setUp(): void
@@ -91,6 +93,8 @@ class RmaManagementTest extends TestCase
         $this->policyFactory        = $this->createMock(\Kkkonrad\Rma\Model\RmaPolicyFactory::class);
         $this->policyResource       = $this->createMock(\Kkkonrad\Rma\Model\ResourceModel\RmaPolicy::class);
         $this->resourceConnection   = $this->createMock(\Magento\Framework\App\ResourceConnection::class);
+        $this->connection           = $this->createMock(AdapterInterface::class);
+        $this->resourceConnection->method('getConnection')->willReturn($this->connection);
         $this->rmaReasonFactory      = $this->createMock(\Kkkonrad\Rma\Model\RmaReasonFactory::class);
         $this->rmaReasonResource     = $this->createMock(\Kkkonrad\Rma\Model\ResourceModel\RmaReason::class);
         $this->rmaConditionFactory   = $this->createMock(\Kkkonrad\Rma\Model\RmaConditionFactory::class);
@@ -177,6 +181,62 @@ class RmaManagementTest extends TestCase
         $this->expectException(LocalizedException::class);
 
         $this->rmaManagement->changeStatus(1, RmaInterface::STATUS_NEW);
+    }
+
+    public function testChangeStatusRollsBackWhenHistoryCannotBeSaved(): void
+    {
+        $rma = $this->createMock(Rma::class);
+        $rma->method('getStatus')->willReturn(RmaInterface::STATUS_NEW);
+        $rma->method('setStatus')->willReturnSelf();
+        $this->rmaRepository->method('getById')->willReturn($rma);
+
+        $history = $this->createMock(RmaStatusHistory::class);
+        $history->method('setRmaId')->willReturnSelf();
+        $history->method('setStatusFrom')->willReturnSelf();
+        $history->method('setStatusTo')->willReturnSelf();
+        $history->method('setComment')->willReturnSelf();
+        $history->method('setCreatedBy')->willReturnSelf();
+        $history->method('setCreatedById')->willReturnSelf();
+        $this->rmaStatusHistoryFactory->method('create')->willReturn($history);
+        $this->rmaStatusHistoryResource->method('save')->willThrowException(new \RuntimeException('write failed'));
+
+        $this->connection->expects($this->once())->method('beginTransaction');
+        $this->connection->expects($this->never())->method('commit');
+        $this->connection->expects($this->once())->method('rollBack');
+        $this->eventManager->expects($this->never())->method('dispatch');
+
+        $this->expectException(\RuntimeException::class);
+        $this->rmaManagement->changeStatus(1, RmaInterface::STATUS_PENDING_REVIEW);
+    }
+
+    public function testCreateFromOrderRejectsEmptyItemList(): void
+    {
+        $this->orderRepository->expects($this->never())->method('get');
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('at least one item');
+
+        $this->rmaManagement->createFromOrder(1, 1, RmaInterface::RESOLUTION_REFUND, []);
+    }
+
+    public function testAddMessageRejectsBlankMessage(): void
+    {
+        $this->rmaRepository->expects($this->never())->method('getById');
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Message cannot be empty');
+
+        $this->rmaManagement->addMessage(1, " \n\t ", 'customer');
+    }
+
+    public function testAddMessageRejectsInvalidAuthorType(): void
+    {
+        $this->rmaRepository->expects($this->never())->method('getById');
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('Invalid message author type');
+
+        $this->rmaManagement->addMessage(1, 'Hello', 'unknown');
     }
 
     public function testIsOrderEligibleForRmaReturnsFalseForNonExistentOrder(): void

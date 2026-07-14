@@ -7,13 +7,14 @@ use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Exception\LocalizedException;
 
 /**
  * Admin Save controller — persists editable fields on the RMA detail form
  * Currently supports updating the comment / resolution_type fields by admin.
  */
-class Save extends Action
+class Save extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_edit';
 

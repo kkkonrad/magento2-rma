@@ -123,8 +123,8 @@ input CreateCustomerRmaInput @doc(description: "Input fields for creating a cust
 input CreateCustomerRmaItemInput @doc(description: "Input fields for item in customer RMA request") {
     order_item_id: Int! @doc(description: "Order item entity ID")
     qty: Float! @doc(description: "Quantity to return")
-    reason_id: Int @doc(description: "Reason ID from rmaReasons")
-    condition_id: Int @doc(description: "Condition ID from rmaConditions")
+    reason_id: Int! @doc(description: "Reason ID from rmaReasons")
+    condition_id: Int! @doc(description: "Condition ID from rmaConditions")
 }
 
 type CreateCustomerRmaOutput @doc(description: "Output after creating customer RMA") {

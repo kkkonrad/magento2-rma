@@ -27,39 +27,60 @@ $statusValidator = $block->getStatusValidator();
 
             <!-- Status action buttons -->
             <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'approved')): ?>
-                <button onclick="confirmAction('<?= $escaper->escapeUrl($block->getApproveUrl() . '?rma_id=' . $rma->getRmaId()) ?>', '<?= $escaper->escapeHtmlAttr(__('Are you sure you want to approve this RMA? If it is a refund, a Credit Memo will be generated.')) ?>')" class="action-default primary accept">
-                    <span><?= $escaper->escapeHtml(__('Approve RMA')) ?></span>
-                </button>
+                <form action="<?= $escaper->escapeUrl($block->getApproveUrl()) ?>" method="post" style="display:inline-block;">
+                    <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+                    <input type="hidden" name="rma_id" value="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"/>
+                    <button type="submit" onclick="return confirm('<?= $escaper->escapeJs(__('Are you sure you want to approve this RMA? If it is a refund, a Credit Memo will be generated.')) ?>')" class="action-default primary accept">
+                        <span><?= $escaper->escapeHtml(__('Approve RMA')) ?></span>
+                    </button>
+                </form>
             <?php endif; ?>
 
             <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'rejected')): ?>
-                <button onclick="confirmAction('<?= $escaper->escapeUrl($block->getRejectUrl() . '?rma_id=' . $rma->getRmaId()) ?>', '<?= $escaper->escapeHtmlAttr(__('Are you sure you want to reject this RMA?')) ?>')" class="action-default error reject">
-                    <span><?= $escaper->escapeHtml(__('Reject RMA')) ?></span>
-                </button>
+                <form action="<?= $escaper->escapeUrl($block->getRejectUrl()) ?>" method="post" style="display:inline-block;">
+                    <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+                    <input type="hidden" name="rma_id" value="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"/>
+                    <button type="submit" onclick="return confirm('<?= $escaper->escapeJs(__('Are you sure you want to reject this RMA?')) ?>')" class="action-default error reject">
+                        <span><?= $escaper->escapeHtml(__('Reject RMA')) ?></span>
+                    </button>
+                </form>
             <?php endif; ?>
 
             <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'cancelled')): ?>
-                <button onclick="confirmAction('<?= $escaper->escapeUrl($block->getCancelUrl() . '?rma_id=' . $rma->getRmaId()) ?>', '<?= $escaper->escapeHtmlAttr(__('Are you sure you want to cancel this RMA?')) ?>')" class="action-default cancel">
-                    <span><?= $escaper->escapeHtml(__('Cancel RMA')) ?></span>
-                </button>
+                <form action="<?= $escaper->escapeUrl($block->getCancelUrl()) ?>" method="post" style="display:inline-block;">
+                    <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+                    <input type="hidden" name="rma_id" value="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"/>
+                    <button type="submit" onclick="return confirm('<?= $escaper->escapeJs(__('Are you sure you want to cancel this RMA?')) ?>')" class="action-default cancel">
+                        <span><?= $escaper->escapeHtml(__('Cancel RMA')) ?></span>
+                    </button>
+                </form>
             <?php endif; ?>
 
             <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'item_received')): ?>
-                <button onclick="window.location.href='<?= $escaper->escapeUrl($block->getChangeStatusUrl() . '?rma_id=' . $rma->getRmaId() . '&status=item_received') ?>'" class="action-default success">
-                    <span><?= $escaper->escapeHtml(__('Mark as Item Received')) ?></span>
-                </button>
+                <form action="<?= $escaper->escapeUrl($block->getChangeStatusUrl()) ?>" method="post" style="display:inline-block;">
+                    <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+                    <input type="hidden" name="rma_id" value="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"/>
+                    <input type="hidden" name="status" value="item_received"/>
+                    <button type="submit" class="action-default success"><span><?= $escaper->escapeHtml(__('Mark as Item Received')) ?></span></button>
+                </form>
             <?php endif; ?>
 
             <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'resolved')): ?>
-                <button onclick="window.location.href='<?= $escaper->escapeUrl($block->getChangeStatusUrl() . '?rma_id=' . $rma->getRmaId() . '&status=resolved') ?>'" class="action-default success">
-                    <span><?= $escaper->escapeHtml(__('Mark as Resolved')) ?></span>
-                </button>
+                <form action="<?= $escaper->escapeUrl($block->getChangeStatusUrl()) ?>" method="post" style="display:inline-block;">
+                    <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+                    <input type="hidden" name="rma_id" value="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"/>
+                    <input type="hidden" name="status" value="resolved"/>
+                    <button type="submit" class="action-default success"><span><?= $escaper->escapeHtml(__('Mark as Resolved')) ?></span></button>
+                </form>
             <?php endif; ?>
 
             <?php if ($statusValidator->isTransitionAllowed($rma->getStatus(), 'closed')): ?>
-                <button onclick="window.location.href='<?= $escaper->escapeUrl($block->getChangeStatusUrl() . '?rma_id=' . $rma->getRmaId() . '&status=closed') ?>'" class="action-default">
-                    <span><?= $escaper->escapeHtml(__('Close RMA')) ?></span>
-                </button>
+                <form action="<?= $escaper->escapeUrl($block->getChangeStatusUrl()) ?>" method="post" style="display:inline-block;">
+                    <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+                    <input type="hidden" name="rma_id" value="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"/>
+                    <input type="hidden" name="status" value="closed"/>
+                    <button type="submit" class="action-default"><span><?= $escaper->escapeHtml(__('Close RMA')) ?></span></button>
+                </form>
             <?php endif; ?>
         </div>
     </div>
@@ -152,9 +173,14 @@ $statusValidator = $block->getStatusValidator();
                                 <?= $escaper->escapeHtml(__('Download PDF Label')) ?>
                             </a>
                         </div>
-                        <button type="button" onclick="confirmAction('<?= $escaper->escapeUrl($block->getUploadShippingLabelUrl() . '?rma_id=' . $rma->getRmaId() . '&delete=1') ?>', '<?= $escaper->escapeHtmlAttr(__('Are you sure you want to delete this shipping label?')) ?>')" class="action-default error">
-                            <span><?= $escaper->escapeHtml(__('Delete Label')) ?></span>
-                        </button>
+                        <form action="<?= $escaper->escapeUrl($block->getUploadShippingLabelUrl()) ?>" method="post">
+                            <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>"/>
+                            <input type="hidden" name="rma_id" value="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"/>
+                            <input type="hidden" name="delete" value="1"/>
+                            <button type="submit" onclick="return confirm('<?= $escaper->escapeJs(__('Are you sure you want to delete this shipping label?')) ?>')" class="action-default error">
+                                <span><?= $escaper->escapeHtml(__('Delete Label')) ?></span>
+                            </button>
+                        </form>
                     <?php else: ?>
                         <form action="<?= $escaper->escapeUrl($block->getUploadShippingLabelUrl()) ?>" method="post" enctype="multipart/form-data">
                             <input type="hidden" name="rma_id" value="<?= $escaper->escapeHtmlAttr((string)$rma->getRmaId()) ?>"/>
@@ -349,4 +375,3 @@ require(['jquery'], function ($) {
     });
 });
 </script>
-

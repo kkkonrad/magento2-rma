@@ -7,10 +7,11 @@ use Kkkonrad\Rma\Model\CannedReplyFactory;
 use Kkkonrad\Rma\Model\ResourceModel\CannedReply as CannedReplyResource;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Framework\Exception\LocalizedException;
 
-class Save extends Action
+class Save extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::cannedreplies_manage';
 

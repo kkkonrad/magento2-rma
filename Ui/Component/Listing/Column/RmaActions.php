@@ -32,6 +32,7 @@ class RmaActions extends Column
                     'delete' => [
                         'href'    => $this->urlBuilder->getUrl('kkkonrad_rma/rma/delete', ['rma_id' => $item['rma_id']]),
                         'label'   => __('Delete'),
+                        'post'    => true,
                         'confirm' => [
                             'title'   => __('Delete RMA'),
                             'message' => __('Are you sure you want to delete RMA #%1?', $item['increment_id']),

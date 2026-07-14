@@ -69,6 +69,15 @@ class RmaManagement implements RmaManagementInterface
         ?string $comment = null,
         bool $termsAccepted = false
     ): RmaInterface {
+        if ($items === []) {
+            throw new LocalizedException(__('A return request must contain at least one item.'));
+        }
+        foreach ($items as $item) {
+            if (!$item instanceof RmaItemInterface) {
+                throw new LocalizedException(__('Invalid return item data.'));
+            }
+        }
+
         // Fix 10: Load order once and reuse — eliminates the second load in isOrderEligibleForRma()
         try {
             $order = $this->orderRepository->get($orderId);
@@ -132,9 +141,10 @@ class RmaManagement implements RmaManagementInterface
         $connection = $this->resourceConnection->getConnection();
         $connection->beginTransaction();
         try {
+            $rma->setIncrementId($this->getNextIncrementId($connection));
             $this->rmaRepository->save($rma);
             foreach ($items as $itemData) {
-                $this->saveRmaItem($rma->getRmaId(), $itemData, $order);
+                $this->saveRmaItem($rma->getRmaId(), $itemData, $order, $resolutionType);
             }
             $this->addStatusHistory($rma->getRmaId(), null, RmaInterface::STATUS_NEW, null, 'customer', $customerId);
             $connection->commit();
@@ -176,9 +186,16 @@ class RmaManagement implements RmaManagementInterface
             $rma->setResolvedAt($this->dateTime->gmtDate());
         }
 
-        $this->rmaRepository->save($rma);
-
-        $this->addStatusHistory($rmaId, $oldStatus, $newStatus, $comment, $changedBy, $changedById);
+        $connection = $this->resourceConnection->getConnection();
+        $connection->beginTransaction();
+        try {
+            $this->rmaRepository->save($rma);
+            $this->addStatusHistory($rmaId, $oldStatus, $newStatus, $comment, $changedBy, $changedById);
+            $connection->commit();
+        } catch (\Throwable $e) {
+            $connection->rollBack();
+            throw $e;
+        }
 
         // Emit event
         $this->eventManager->dispatch('kkkonrad_rma_status_changed', [
@@ -203,6 +220,18 @@ class RmaManagement implements RmaManagementInterface
         ?string $authorName = null,
         bool $isInternal = false
     ): RmaMessageInterface {
+        $message = trim($message);
+        if ($message === '') {
+            throw new LocalizedException(__('Message cannot be empty.'));
+        }
+        if (!in_array($authorType, [
+            RmaMessageInterface::AUTHOR_ADMIN,
+            RmaMessageInterface::AUTHOR_CUSTOMER,
+            RmaMessageInterface::AUTHOR_SYSTEM,
+        ], true)) {
+            throw new LocalizedException(__('Invalid message author type.'));
+        }
+
         // Fix R5: Enforce message length limit at service layer (not just controller/resolver)
         $maxLength = 5000;
         if (mb_strlen($message) > $maxLength) {
@@ -370,7 +399,10 @@ class RmaManagement implements RmaManagementInterface
     /**
      * Get return window days for a specific order item.
      */
-    private function getReturnWindowDaysForProduct(\Magento\Sales\Api\Data\OrderItemInterface $orderItem): int
+    private function getReturnWindowDaysForProduct(
+        \Magento\Sales\Api\Data\OrderItemInterface $orderItem,
+        ?string $resolutionType = null
+    ): int
     {
         $storeId = (int)$orderItem->getStoreId();
         try {
@@ -382,12 +414,18 @@ class RmaManagement implements RmaManagementInterface
                 $policy = $this->policyFactory->create();
                 $this->policyResource->load($policy, $policyId);
                 if ($policy->getPolicyId() && $policy->getIsActive()) {
-                    return max(
-                        $policy->getDaysRefund(),
-                        $policy->getDaysExchange(),
-                        $policy->getDaysRepair(),
-                        $policy->getDaysVoucher()
-                    );
+                    return match ($resolutionType) {
+                        RmaInterface::RESOLUTION_REFUND => $policy->getDaysRefund(),
+                        RmaInterface::RESOLUTION_EXCHANGE => $policy->getDaysExchange(),
+                        RmaInterface::RESOLUTION_REPAIR => $policy->getDaysRepair(),
+                        RmaInterface::RESOLUTION_VOUCHER => $policy->getDaysVoucher(),
+                        default => max(
+                            $policy->getDaysRefund(),
+                            $policy->getDaysExchange(),
+                            $policy->getDaysRepair(),
+                            $policy->getDaysVoucher()
+                        ),
+                    };
                 }
             }
         } catch (\Exception) {
@@ -436,7 +474,8 @@ class RmaManagement implements RmaManagementInterface
     private function saveRmaItem(
         int $rmaId,
         RmaItemInterface $itemData,
-        \Magento\Sales\Api\Data\OrderInterface $order
+        \Magento\Sales\Api\Data\OrderInterface $order,
+        string $resolutionType
     ): void {
         $matchedOrderItem = null;
 
@@ -495,7 +534,7 @@ class RmaManagement implements RmaManagementInterface
         $invoicedAt = $order->getUpdatedAt() ?? $order->getCreatedAt();
         try {
             $invoiceDate = new \DateTimeImmutable($invoicedAt);
-            $returnWindowDays = $this->getReturnWindowDaysForProduct($matchedOrderItem);
+            $returnWindowDays = $this->getReturnWindowDaysForProduct($matchedOrderItem, $resolutionType);
             $deadline = $invoiceDate->modify('+' . $returnWindowDays . ' days');
             $now = new \DateTimeImmutable();
             if ($now > $deadline) {
@@ -533,15 +572,22 @@ class RmaManagement implements RmaManagementInterface
         string $idField,
         \Magento\Framework\Phrase $errorMessage
     ): void {
-        if ($id === null) {
-            return;
-        }
-
         $item = $factory->create();
-        $resource->load($item, $id, $idField);
+        if ($id !== null) {
+            $resource->load($item, $id, $idField);
+        }
         if (!(int) $item->getData('is_active')) {
             throw new LocalizedException($errorMessage);
         }
+    }
+
+    private function getNextIncrementId(\Magento\Framework\DB\Adapter\AdapterInterface $connection): string
+    {
+        $sequenceTable = $this->resourceConnection->getTableName('kkkonrad_rma_sequence');
+        $connection->insert($sequenceTable, []);
+        $sequenceValue = (int)$connection->fetchOne('SELECT LAST_INSERT_ID()');
+
+        return sprintf('RMA-%06d', $sequenceValue);
     }
 
     /**

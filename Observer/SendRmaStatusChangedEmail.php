@@ -29,9 +29,11 @@ class SendRmaStatusChangedEmail implements ObserverInterface
         $statusFrom = $observer->getData('status_from');
         $statusTo   = $observer->getData('status_to');
 
+        if (!$rma) {
+            return;
+        }
         $storeId = (int) $rma->getStoreId();
-
-        if (!$rma || !$this->config->isEnabled($storeId)) {
+        if (!$this->config->isEnabled($storeId)) {
             return;
         }
 

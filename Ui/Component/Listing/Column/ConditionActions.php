@@ -32,6 +32,7 @@ class ConditionActions extends Column
                     'delete' => [
                         'href'    => $this->urlBuilder->getUrl('kkkonrad_rma/condition/delete', ['condition_id' => $item['condition_id']]),
                         'label'   => __('Delete'),
+                        'post'    => true,
                         'confirm' => [
                             'title'   => __('Delete Condition'),
                             'message' => __('Are you sure you want to delete condition "%1"?', $item['label']),

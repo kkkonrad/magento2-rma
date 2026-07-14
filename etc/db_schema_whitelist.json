@@ -215,5 +215,13 @@
         "constraint": {
             "PRIMARY": true
         }
+    },
+    "kkkonrad_rma_sequence": {
+        "column": {
+            "sequence_value": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
     }
 }

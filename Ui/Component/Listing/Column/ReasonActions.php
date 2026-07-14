@@ -32,6 +32,7 @@ class ReasonActions extends Column
                     'delete' => [
                         'href'    => $this->urlBuilder->getUrl('kkkonrad_rma/reason/delete', ['reason_id' => $item['reason_id']]),
                         'label'   => __('Delete'),
+                        'post'    => true,
                         'confirm' => [
                             'title'   => __('Delete Reason'),
                             'message' => __('Are you sure you want to delete reason "%1"?', $item['label']),

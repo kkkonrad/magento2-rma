@@ -634,6 +634,11 @@ function initRmaCreate() {
                 return;
             }
 
+            if (this.selectedItems.some(item => !item.reason_id || !item.condition_id)) {
+                this.errorMessage = 'Please select a return reason and item condition for every selected item.';
+                return;
+            }
+
             // Terms and Conditions Validation
             if (this.termsEnabled && !this.termsAccepted) {
                 this.errorMessage = 'Please accept the Terms and Conditions for returns.';

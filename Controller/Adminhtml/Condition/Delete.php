@@ -7,8 +7,9 @@ use Kkkonrad\Rma\Model\RmaConditionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaCondition as ConditionResource;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 
-class Delete extends Action
+class Delete extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::conditions_manage';
 

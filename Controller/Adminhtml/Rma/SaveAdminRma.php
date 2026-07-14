@@ -8,11 +8,12 @@ use Kkkonrad\Rma\Api\Data\RmaItemInterfaceFactory;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
-class SaveAdminRma extends Action
+class SaveAdminRma extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_create';
 

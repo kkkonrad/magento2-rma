@@ -32,6 +32,7 @@ class CannedReplyActions extends Column
                     'delete' => [
                         'href'    => $this->urlBuilder->getUrl('kkkonrad_rma/cannedreply/delete', ['reply_id' => $item['reply_id']]),
                         'label'   => __('Delete'),
+                        'post'    => true,
                         'confirm' => [
                             'title'   => __('Delete Canned Reply'),
                             'message' => __('Are you sure you want to delete canned reply "%1"?', $item['title']),

@@ -32,6 +32,7 @@ class PolicyActions extends Column
                     'delete' => [
                         'href'    => $this->urlBuilder->getUrl('kkkonrad_rma/policy/delete', ['policy_id' => $item['policy_id']]),
                         'label'   => __('Delete'),
+                        'post'    => true,
                         'confirm' => [
                             'title'   => __('Delete Policy'),
                             'message' => __('Are you sure you want to delete policy "%1"?', $item['name']),

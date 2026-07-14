@@ -32,6 +32,7 @@ class ResolutionActions extends Column
                     'delete' => [
                         'href'    => $this->urlBuilder->getUrl('kkkonrad_rma/resolution/delete', ['resolution_id' => $item['resolution_id']]),
                         'label'   => __('Delete'),
+                        'post'    => true,
                         'confirm' => [
                             'title'   => __('Delete Resolution'),
                             'message' => __('Are you sure you want to delete resolution "%1"?', $item['label']),

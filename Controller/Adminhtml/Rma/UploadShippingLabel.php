@@ -6,6 +6,7 @@ namespace Kkkonrad\Rma\Controller\Adminhtml\Rma;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
@@ -14,7 +15,7 @@ use Magento\Framework\Filesystem;
 use Magento\Framework\Math\Random;
 use Kkkonrad\Rma\Model\Config;
 
-class UploadShippingLabel extends Action
+class UploadShippingLabel extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_upload_label';
 

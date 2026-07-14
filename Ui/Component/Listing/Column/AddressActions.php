@@ -32,6 +32,7 @@ class AddressActions extends Column
                     'delete' => [
                         'href'    => $this->urlBuilder->getUrl('kkkonrad_rma/address/delete', ['address_id' => $item['address_id']]),
                         'label'   => __('Delete'),
+                        'post'    => true,
                         'confirm' => [
                             'title'   => __('Delete Address'),
                             'message' => __('Are you sure you want to delete address "%1"?', $item['name']),

@@ -17,30 +17,32 @@ class DeleteButton implements ButtonProviderInterface
 
     public function getButtonData(): array
     {
-        $data = [];
-        $reasonId = (int)$this->request->getParam('reason_id');
-        $conditionId = (int)$this->request->getParam('condition_id');
-        
-        if ($reasonId) {
-            $data = [
-                'label' => __('Delete Reason'),
+        $entities = [
+            'reason_id' => __('Delete Reason'),
+            'condition_id' => __('Delete Condition'),
+            'address_id' => __('Delete Address'),
+            'policy_id' => __('Delete Policy'),
+            'resolution_id' => __('Delete Resolution'),
+            'reply_id' => __('Delete Canned Reply'),
+        ];
+
+        foreach ($entities as $parameter => $label) {
+            $entityId = (int)$this->request->getParam($parameter);
+            if (!$entityId) {
+                continue;
+            }
+
+            return [
+                'label' => $label,
                 'class' => 'delete',
                 'on_click' => 'deleteConfirm(\'' . __(
                     'Are you sure you want to do this?'
-                ) . '\', \'' . $this->urlBuilder->getUrl('*/*/delete', ['reason_id' => $reasonId]) . '\', {data: {}})',
-                'sort_order' => 20
-            ];
-        } elseif ($conditionId) {
-            $data = [
-                'label' => __('Delete Condition'),
-                'class' => 'delete',
-                'on_click' => 'deleteConfirm(\'' . __(
-                    'Are you sure you want to do this?'
-                ) . '\', \'' . $this->urlBuilder->getUrl('*/*/delete', ['condition_id' => $conditionId]) . '\', {data: {}})',
-                'sort_order' => 20
+                ) . '\', \'' . $this->urlBuilder->getUrl('*/*/delete', [$parameter => $entityId])
+                    . '\', {data: {}})',
+                'sort_order' => 20,
             ];
         }
 
-        return $data;
+        return [];
     }
 }
