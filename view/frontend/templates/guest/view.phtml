@@ -59,6 +59,9 @@ $addMessageUrl = $block->getAddMessageUrl();
                     <?= $escaper->escapeHtml(__('Return #')) ?><?= $escaper->escapeHtml($rma->getIncrementId()) ?>
                 </h1>
                 <p class="text-sm text-gray-500 mt-1">
+                    <?= $escaper->escapeHtml(__('Here you can review the request details, current status and history, download the return slip, and contact store support.')) ?>
+                </p>
+                <p class="text-sm text-gray-500 mt-1">
                     <?= $escaper->escapeHtml(__('Order')) ?>
                     #<?= $escaper->escapeHtml($rma->getOrderIncrementId() ?? '-') ?>
                     · <?= $escaper->escapeHtml(__('Submitted')) ?>

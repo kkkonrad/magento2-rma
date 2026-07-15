@@ -17,6 +17,9 @@ $config = [
 ];
 ?>
 <div class="rma-luma">
+    <p class="rma-page-description">
+        <?= $escaper->escapeHtml(__('Here you can select an order and the products you want to return or exchange, then provide a reason and choose your preferred resolution.')) ?>
+    </p>
     <?php if (!$orders): ?>
         <div class="message info empty"><span><?= $escaper->escapeHtml(__('No eligible orders found')) ?></span></div>
     <?php else: ?>

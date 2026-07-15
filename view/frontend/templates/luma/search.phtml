@@ -4,6 +4,9 @@ declare(strict_types=1);
 /** @var \Magento\Framework\View\Element\Template $block */
 /** @var \Magento\Framework\Escaper $escaper */
 ?>
+<p class="rma-page-description">
+    <?= $escaper->escapeHtml(__('Here you can find an order without signing in to submit a new return or check the status of an existing request.')) ?>
+</p>
 <div class="block block-rma-guest">
     <div class="block-title"><strong><?= $escaper->escapeHtml(__('Order Return (RMA)')) ?></strong></div>
     <div class="block-content">

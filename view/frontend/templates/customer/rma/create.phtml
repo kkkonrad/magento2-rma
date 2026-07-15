@@ -47,6 +47,9 @@ $uploadUrl       = $block->getUploadUrl();
         <h1 class="text-2xl font-bold text-gray-900">
             <?= $escaper->escapeHtml(__('Request a Return')) ?>
         </h1>
+        <p class="text-sm text-gray-500 mt-1">
+            <?= $escaper->escapeHtml(__('Here you can select an order and the products you want to return or exchange, then provide a reason and choose your preferred resolution.')) ?>
+        </p>
     </div>
 
     <?php if (empty($eligibleOrders)): ?>

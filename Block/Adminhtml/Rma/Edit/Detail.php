@@ -5,6 +5,7 @@ namespace Kkkonrad\Rma\Block\Adminhtml\Rma\Edit;
 
 use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
+use Kkkonrad\Rma\Model\DictionaryLabelTranslator;
 use Kkkonrad\Rma\Model\ResourceModel\RmaAttachment\CollectionFactory as AttachmentCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaItem\CollectionFactory as ItemCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaMessage\CollectionFactory as MessageCollectionFactory;
@@ -34,6 +35,7 @@ class Detail extends Template
         private readonly ConditionCollectionFactory $conditionCollectionFactory,
         private readonly StatusValidator $statusValidator,
         private readonly StatusSource $statusSource,
+        private readonly DictionaryLabelTranslator $dictionaryLabelTranslator,
         private readonly \Kkkonrad\Rma\Model\ResourceModel\CannedReply\CollectionFactory $cannedReplyCollectionFactory,
         array $data = []
     ) {
@@ -135,7 +137,10 @@ class Detail extends Template
         $collection = $this->reasonCollectionFactory->create();
         $reasons = [];
         foreach ($collection as $reason) {
-            $reasons[$reason->getReasonId()] = $reason->getLabel();
+            $reasons[$reason->getReasonId()] = (string) $this->dictionaryLabelTranslator->getReasonLabel(
+                (string) $reason->getCode(),
+                (string) $reason->getLabel()
+            );
         }
         return $reasons;
     }
@@ -145,7 +150,10 @@ class Detail extends Template
         $collection = $this->conditionCollectionFactory->create();
         $conditions = [];
         foreach ($collection as $condition) {
-            $conditions[$condition->getConditionId()] = $condition->getLabel();
+            $conditions[$condition->getConditionId()] = (string) $this->dictionaryLabelTranslator->getConditionLabel(
+                (string) $condition->getCode(),
+                (string) $condition->getLabel()
+            );
         }
         return $conditions;
     }
@@ -153,6 +161,18 @@ class Detail extends Template
     public function getStatusLabel(string $status): string
     {
         return (string) $this->statusSource->getLabel($status);
+    }
+
+    public function getResolutionLabel(string $resolutionType): string
+    {
+        if ($resolutionType === '') {
+            return '-';
+        }
+
+        return (string) $this->dictionaryLabelTranslator->getResolutionLabel(
+            $resolutionType,
+            ucfirst(str_replace('_', ' ', $resolutionType))
+        );
     }
 
     public function getStatusValidator(): StatusValidator

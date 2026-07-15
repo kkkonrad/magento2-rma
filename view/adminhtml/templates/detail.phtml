@@ -112,7 +112,7 @@ $statusValidator = $block->getStatusValidator();
                             </tr>
                             <tr>
                                 <th><?= $escaper->escapeHtml(__('Resolution Type')) ?></th>
-                                <td style="text-transform:capitalize;"><?= $escaper->escapeHtml($rma->getResolutionType()) ?></td>
+                                <td><?= $escaper->escapeHtml($block->getResolutionLabel((string) $rma->getResolutionType())) ?></td>
                             </tr>
                             <tr>
                                 <th><?= $escaper->escapeHtml(__('Created At')) ?></th>
@@ -304,7 +304,7 @@ $statusValidator = $block->getStatusValidator();
                                     <div style="display:flex;align-items:center;gap:6px;">
                                         <span style="font-size:12px;color:#4b5563;"><?= $escaper->escapeHtml(__('Canned Reply:')) ?></span>
                                         <select id="canned_reply_select" class="admin__control-select" style="font-size:12px;padding:3px;height:auto;width:180px;">
-                                            <option value=""><?= $escaper->escapeHtml('-- Select Reply --') ?></option>
+                                            <option value=""><?= $escaper->escapeHtml(__('-- Select Reply --')) ?></option>
                                             <?php foreach ($cannedReplies as $canned): ?>
                                                 <option value="<?= $escaper->escapeHtmlAttr($canned['text']) ?>"><?= $escaper->escapeHtml($canned['title']) ?></option>
                                             <?php endforeach; ?>

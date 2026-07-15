@@ -169,7 +169,7 @@ require(['jquery'], function ($) {
             if (isReturnable) {
                 checkboxTd.append('<input type="checkbox" class="item-selector" data-item-id="' + item.item_id + '"/>');
             } else {
-                checkboxTd.append('<span class="disabled-checkbox" style="color: #ccc;">N/A</span>');
+                checkboxTd.append('<span class="disabled-checkbox" style="color: #ccc;"><?= $escaper->escapeJs(__('N/A')) ?></span>');
             }
             tr.append(checkboxTd);
 

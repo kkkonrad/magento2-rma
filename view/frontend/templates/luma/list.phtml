@@ -6,6 +6,9 @@ declare(strict_types=1);
 $rmaList = $block->getRmaList();
 ?>
 <div class="rma-luma">
+    <p class="rma-page-description">
+        <?= $escaper->escapeHtml(__('Here you can review all your return and exchange requests, check their current status, and open the details of a selected request.')) ?>
+    </p>
     <div class="actions-toolbar rma-actions"><div class="primary"><a class="action primary" href="<?= $escaper->escapeUrl($block->getCreateUrl()) ?>"><span><?= $escaper->escapeHtml(__('Request a Return')) ?></span></a></div></div>
     <?php if (!$rmaList): ?>
         <div class="message info empty"><span><?= $escaper->escapeHtml(__('No return requests yet')) ?></span></div>
