@@ -35,6 +35,17 @@ REST API i GraphQL.
 Moduł nie deklaruje twardej zależności Composer od Hyvä. Aktywny motyw oraz jego rodzice są
 wykrywani automatycznie, a moduł wybiera odpowiedni zestaw szablonów i skryptów.
 
+## Kompatybilność motywów
+
+Moduł jest kompatybilny zarówno ze standardowymi motywami Magento 2, jak i z **Hyvä Theme**:
+
+- **Magento Blank i Luma** oraz motywy potomne dziedziczące po Blank/Luma;
+- **Hyvä Theme** oraz motywy potomne oparte na Hyvä.
+
+Nie trzeba instalować osobnych wersji modułu dla poszczególnych motywów. Moduł automatycznie
+rozpoznaje aktywny motyw i wybiera właściwe szablony, style oraz mechanizmy JavaScript: RequireJS
+dla standardowego frontendu Magento albo Alpine.js dla Hyvä.
+
 ## Instalacja
 
 ### Repozytorium Composer
