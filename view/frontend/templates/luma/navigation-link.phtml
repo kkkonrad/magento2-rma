@@ -1,0 +1,12 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Magento\Framework\View\Element\Html\Link\Current $block */
+/** @var \Magento\Framework\Escaper $escaper */
+?>
+<li class="nav item<?= $block->isCurrent() ? ' current' : '' ?>">
+    <a href="<?= $escaper->escapeUrl($block->getHref()) ?>"
+       <?= $block->isCurrent() ? 'aria-current="page"' : '' ?>>
+        <?= $escaper->escapeHtml(__($block->getLabel())) ?>
+    </a>
+</li>

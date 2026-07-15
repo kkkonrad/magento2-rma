@@ -1,0 +1,56 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Kkkonrad\Rma\Block\Customer\Rma\Create|\Kkkonrad\Rma\Block\Guest\Create $block */
+/** @var \Magento\Framework\Escaper $escaper */
+$orders = $block->getEligibleOrders();
+$config = [
+    'itemsUrl' => $block->getUrl('rma/index/orderItems'),
+    'reasons' => $block->getReasons(),
+    'conditions' => $block->getConditions(),
+    'requiredImageReasons' => $block->getReasonsRequireImageMap(),
+    'messages' => [
+        'loadError' => (string)__('Failed to load order items.'),
+        'required' => (string)__('Please select at least one item and complete all required fields.'),
+        'networkError' => (string)__('Network error. Please try again.'),
+    ],
+];
+?>
+<div class="rma-luma">
+    <div class="page-title-wrapper"><h1 class="page-title"><span class="base"><?= $escaper->escapeHtml(__('Request a Return')) ?></span></h1></div>
+    <?php if (!$orders): ?>
+        <div class="message info empty"><span><?= $escaper->escapeHtml(__('No eligible orders found')) ?></span></div>
+    <?php else: ?>
+        <div class="message error rma-form-message" hidden><span></span></div>
+        <form class="form form-rma-create" action="<?= $escaper->escapeUrl($block->getSaveUrl()) ?>" method="post" enctype="multipart/form-data"
+              data-mage-init='<?= $escaper->escapeHtmlAttr(json_encode(['Kkkonrad_Rma/js/luma-create' => $config], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
+            <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>">
+            <input type="hidden" name="items" value="[]">
+            <fieldset class="fieldset">
+                <legend class="legend"><span><?= $escaper->escapeHtml(__('Select Order')) ?></span></legend>
+                <?php foreach ($orders as $order): ?>
+                    <div class="field choice">
+                        <input class="radio rma-order" type="radio" name="order_id" id="rma-order-<?= (int)$order->getEntityId() ?>" value="<?= (int)$order->getEntityId() ?>">
+                        <label class="label" for="rma-order-<?= (int)$order->getEntityId() ?>"><span>#<?= $escaper->escapeHtml($order->getIncrementId()) ?> - <?= $escaper->escapeHtml($block->formatDate($order->getCreatedAt(), \IntlDateFormatter::MEDIUM)) ?></span></label>
+                    </div>
+                <?php endforeach; ?>
+            </fieldset>
+            <fieldset class="fieldset rma-items-fieldset" hidden>
+                <legend class="legend"><span><?= $escaper->escapeHtml(__('Select Items')) ?></span></legend>
+                <div class="rma-items"></div>
+            </fieldset>
+            <fieldset class="fieldset">
+                <div class="field required">
+                    <label class="label" for="rma-resolution"><span><?= $escaper->escapeHtml(__('Resolution')) ?></span></label>
+                    <div class="control"><select class="select" id="rma-resolution" name="resolution_type" required><option value=""><?= $escaper->escapeHtml(__('Please select')) ?></option><?php foreach ($block->getResolutionTypes() as $option): ?><option value="<?= $escaper->escapeHtmlAttr((string)$option['value']) ?>"><?= $escaper->escapeHtml($option['label']) ?></option><?php endforeach; ?></select></div>
+                </div>
+                <div class="field"><label class="label" for="rma-comment"><span><?= $escaper->escapeHtml(__('Comment')) ?></span></label><div class="control"><textarea class="input-text" id="rma-comment" name="comment" rows="4"></textarea></div></div>
+                <div class="field"><label class="label" for="rma-attachments"><span><?= $escaper->escapeHtml(__('Attachments')) ?></span></label><div class="control"><input id="rma-attachments" name="attachments[]" type="file" multiple accept="<?= $escaper->escapeHtmlAttr('.' . str_replace(',', ',.', $block->getAllowedExtensions())) ?>"><div class="note"><?= $escaper->escapeHtml(__('Maximum file size: %1 MB', $block->getMaxFileSizeMb())) ?></div></div></div>
+                <?php if ($block->isTermsEnabled()): ?>
+                    <div class="field choice required"><input class="checkbox" type="checkbox" name="terms_accepted" value="1" id="rma-terms" required><label class="label" for="rma-terms"><span><?= $escaper->escapeHtml(__('I accept the')) ?> <a target="_blank" href="<?= $escaper->escapeUrl($block->getTermsPageUrl()) ?>"><?= $escaper->escapeHtml(__('Terms and Conditions')) ?></a></span></label></div>
+                <?php endif; ?>
+            </fieldset>
+            <div class="actions-toolbar"><div class="primary"><button class="action primary" type="submit"><span><?= $escaper->escapeHtml(__('Submit Return Request')) ?></span></button></div></div>
+        </form>
+    <?php endif; ?>
+</div>

@@ -1,0 +1,26 @@
+.rma-luma {
+    .rma-actions { margin-bottom: 24px; }
+    .rma-item-row { border-bottom: 1px solid #d1d1d1; padding: 16px 0; }
+    .rma-item-title { align-items: center; display: flex; gap: 10px; margin-bottom: 12px; }
+    .rma-item-controls { display: grid; gap: 16px; grid-template-columns: 100px 1fr 1fr; }
+    .rma-item-controls label { font-weight: 600; }
+    .rma-item-controls input,
+    .rma-item-controls select { display: block; font-weight: 400; margin-top: 6px; width: 100%; }
+    .rma-summary { display: grid; grid-template-columns: 150px 1fr; margin: 0; }
+    .rma-summary dt,
+    .rma-summary dd { border-bottom: 1px solid #e5e5e5; margin: 0; padding: 10px; }
+    .rma-message-list { list-style: none; margin: 0; padding: 0; }
+    .rma-message-list li { border-bottom: 1px solid #e5e5e5; padding: 12px 0; }
+    .rma-message-list small { color: #666; margin-left: 10px; }
+}
+
+.block-rma-guest {
+    max-width: 500px;
+
+    .form-rma-search .input-text { width: 100%; }
+}
+
+@media (max-width: 767px) {
+    .rma-luma .rma-item-controls { grid-template-columns: 1fr; }
+    .rma-luma .rma-summary { grid-template-columns: 110px 1fr; }
+}

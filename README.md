@@ -1,7 +1,7 @@
 # Magento 2 RMA
 
 Moduł obsługi autoryzacji zwrotów towarów (Return Merchandise Authorization) dla Magento 2,
-kompatybilny z motywem Hyvä. Udostępnia formularze zwrotów dla klientów i gości, proces obsługi
+kompatybilny z motywami Luma i Hyvä. Udostępnia formularze zwrotów dla klientów i gości, proces obsługi
 w panelu administracyjnym, polityki zwrotów na poziomie produktu, powiadomienia oraz interfejsy
 REST API i GraphQL.
 
@@ -9,7 +9,8 @@ REST API i GraphQL.
 
 - zgłoszenia zwrotów z poziomu konta klienta;
 - opcjonalna obsługa zwrotów dla zamówień gości;
-- szablony zgodne z Hyvä oraz interakcje oparte na Alpine.js;
+- osobne, automatycznie wybierane widoki dla Luma i Hyvä;
+- interakcje Alpine.js w Hyvä oraz RequireJS w Luma;
 - tworzenie i obsługa RMA w panelu administratora w **Sprzedaż > RMA**;
 - powody zwrotu, stany produktów, adresy zwrotów, polityki, rozwiązania i gotowe odpowiedzi;
 - obsługa zwrotu środków, wymiany, naprawy i bonu;
@@ -29,10 +30,10 @@ REST API i GraphQL.
 - Magento Open Source lub Adobe Commerce 2.4;
 - PHP 8.1 lub nowszy;
 - skonfigurowany i działający cron Magento;
-- motyw Hyvä dla szablonów sklepu zgodnych z Hyvä.
+- motyw dziedziczący po Magento Blank/Luma albo Hyvä.
 
-Moduł nie deklaruje twardej zależności Composer od Hyvä. Można go zainstalować przed
-skonfigurowaniem motywu sklepu.
+Moduł nie deklaruje twardej zależności Composer od Hyvä. Aktywny motyw oraz jego rodzice są
+wykrywani automatycznie, a moduł wybiera odpowiedni zestaw szablonów i skryptów.
 
 ## Instalacja
 
@@ -63,7 +64,7 @@ bin/magento cache:flush
 ```
 
 Po instalacji lub aktualizacji szablonów frontendu skompiluj zasoby sklepu zgodnie z procesem
-wdrożeniowym aktywnego motywu Hyvä.
+wdrożeniowym aktywnego motywu.
 
 ## Konfiguracja
 
