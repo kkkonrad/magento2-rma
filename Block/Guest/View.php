@@ -6,6 +6,7 @@ namespace Kkkonrad\Rma\Block\Guest;
 use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\Config;
+use Kkkonrad\Rma\Model\DictionaryLabelTranslator;
 use Kkkonrad\Rma\Model\GuestAccessToken;
 use Kkkonrad\Rma\Model\ResourceModel\RmaAttachment\CollectionFactory as AttachmentCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaMessage\CollectionFactory as MessageCollectionFactory;
@@ -35,6 +36,7 @@ class View extends Template
         private readonly Config $config,
         private readonly StatusValidator $statusValidator,
         private readonly GuestAccessToken $guestAccessToken,
+        private readonly DictionaryLabelTranslator $dictionaryLabelTranslator,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -119,7 +121,19 @@ class View extends Template
 
     public function getStatusLabel(string $status): string
     {
-        return (string) __($this->statusSource->getLabel($status));
+        return (string) $this->statusSource->getLabel($status);
+    }
+
+    public function getResolutionLabel(string $resolutionType): string
+    {
+        if ($resolutionType === '') {
+            return '-';
+        }
+
+        return (string) $this->dictionaryLabelTranslator->getResolutionLabel(
+            $resolutionType,
+            ucfirst(str_replace('_', ' ', $resolutionType))
+        );
     }
 
     public function getStatusBadgeClass(string $status): string

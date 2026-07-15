@@ -91,7 +91,7 @@ $rmaList = $block->getRmaList();
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-gray-600 capitalize">
-                                <?= $escaper->escapeHtml($rma->getResolutionType() ?? '-') ?>
+                                <?= $escaper->escapeHtml($block->getResolutionLabel((string) $rma->getResolutionType())) ?>
                             </td>
                             <td class="px-6 py-4 text-gray-500 text-xs">
                                 <?= $escaper->escapeHtml($rma->getCreatedAt() ? date('d.m.Y', strtotime($rma->getCreatedAt())) : '-') ?>

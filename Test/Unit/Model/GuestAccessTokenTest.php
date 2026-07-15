@@ -35,6 +35,9 @@ class GuestAccessTokenTest extends TestCase
 
         $rma->setData('guest_access_token_expires_at', gmdate('Y-m-d H:i:s', strtotime('-1 second')));
         $this->assertFalse($service->isValid($rma, 'correct-token'));
+
+        $rma->setData('guest_access_token_expires_at', 'invalid-date');
+        $this->assertFalse($service->isValid($rma, 'correct-token'));
     }
 
     private function createRmaModel(): Rma

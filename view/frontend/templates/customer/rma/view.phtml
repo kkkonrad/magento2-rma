@@ -246,7 +246,7 @@ $addMessageUrl = $block->getAddMessageUrl();
                     <div class="flex items-center justify-between">
                         <dt class="text-gray-500"><?= $escaper->escapeHtml(__('Resolution')) ?></dt>
                         <dd class="font-medium text-gray-800 capitalize">
-                            <?= $escaper->escapeHtml($rma->getResolutionType() ?? '-') ?>
+                            <?= $escaper->escapeHtml($block->getResolutionLabel((string) $rma->getResolutionType())) ?>
                         </dd>
                     </div>
                     <?php if ($rma->getResolvedAt()): ?>

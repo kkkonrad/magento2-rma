@@ -5,6 +5,7 @@ namespace Kkkonrad\Rma\Model\Source;
 
 use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Magento\Framework\Data\OptionSourceInterface;
+use Magento\Framework\Phrase;
 
 class Status implements OptionSourceInterface
 {
@@ -23,14 +24,25 @@ class Status implements OptionSourceInterface
     public function toOptionArray(): array
     {
         $options = [];
-        foreach (self::LABELS as $value => $label) {
-            $options[] = ['value' => $value, 'label' => __($label)];
+        foreach (array_keys(self::LABELS) as $value) {
+            $options[] = ['value' => $value, 'label' => $this->getLabel($value)];
         }
         return $options;
     }
 
-    public function getLabel(string $status): string
+    public function getLabel(string $status): Phrase|string
     {
-        return self::LABELS[$status] ?? $status;
+        return match ($status) {
+            RmaInterface::STATUS_NEW => __('Kkkonrad RMA status: new'),
+            RmaInterface::STATUS_PENDING_REVIEW => __('Kkkonrad RMA status: pending review'),
+            RmaInterface::STATUS_APPROVED => __('Kkkonrad RMA status: approved'),
+            RmaInterface::STATUS_REJECTED => __('Kkkonrad RMA status: rejected'),
+            RmaInterface::STATUS_ITEM_IN_TRANSIT => __('Kkkonrad RMA status: item in transit'),
+            RmaInterface::STATUS_ITEM_RECEIVED => __('Kkkonrad RMA status: item received'),
+            RmaInterface::STATUS_RESOLVED => __('Kkkonrad RMA status: resolved'),
+            RmaInterface::STATUS_CLOSED => __('Kkkonrad RMA status: closed'),
+            RmaInterface::STATUS_CANCELLED => __('Kkkonrad RMA status: cancelled'),
+            default => $status,
+        };
     }
 }

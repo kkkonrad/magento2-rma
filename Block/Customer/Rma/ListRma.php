@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Kkkonrad\Rma\Block\Customer\Rma;
 
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
+use Kkkonrad\Rma\Model\DictionaryLabelTranslator;
 use Kkkonrad\Rma\Model\Source\Status;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -25,6 +26,7 @@ class ListRma extends Template
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly SortOrderBuilder $sortOrderBuilder,
         private readonly Status $statusSource,
+        private readonly DictionaryLabelTranslator $dictionaryLabelTranslator,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -64,7 +66,19 @@ class ListRma extends Template
 
     public function getStatusLabel(string $status): string
     {
-        return (string) __($this->statusSource->getLabel($status));
+        return (string) $this->statusSource->getLabel($status);
+    }
+
+    public function getResolutionLabel(string $resolutionType): string
+    {
+        if ($resolutionType === '') {
+            return '-';
+        }
+
+        return (string) $this->dictionaryLabelTranslator->getResolutionLabel(
+            $resolutionType,
+            ucfirst(str_replace('_', ' ', $resolutionType))
+        );
     }
 
     public function getCreateUrl(): string

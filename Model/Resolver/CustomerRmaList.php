@@ -62,7 +62,7 @@ class CustomerRmaList implements ResolverInterface
                 'increment_id'      => (string) $rma->getIncrementId(),
                 'order_increment_id'=> (string) $rma->getOrderIncrementId(),
                 'status'            => (string) $rma->getStatus(),
-                'status_label'      => (string) __($this->statusSource->getLabel($rma->getStatus())),
+                'status_label'      => (string) $this->statusSource->getLabel($rma->getStatus()),
                 'resolution_type'   => (string) $rma->getResolutionType(),
                 'created_at'        => (string) $rma->getCreatedAt(),
                 'updated_at'        => (string) $rma->getUpdatedAt(),

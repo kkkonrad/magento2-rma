@@ -7,6 +7,7 @@ use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\Config;
+use Kkkonrad\Rma\Model\DictionaryLabelTranslator;
 use Kkkonrad\Rma\Model\ResourceModel\RmaCondition\CollectionFactory as ConditionCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaReason\CollectionFactory as ReasonCollectionFactory;
 use Kkkonrad\Rma\Model\Source\ResolutionType;
@@ -33,6 +34,7 @@ class Create extends Template
          private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
          private readonly \Magento\Framework\Data\Form\FormKey $formKey,
          private readonly \Magento\Cms\Helper\Page $pageHelper,
+         private readonly DictionaryLabelTranslator $dictionaryLabelTranslator,
          array $data = []
      ) {
          parent::__construct($context, $data);
@@ -99,7 +101,10 @@ class Create extends Template
         foreach ($collection as $reason) {
             $options[] = [
                 'value' => $reason->getReasonId(),
-                'label' => $reason->getLabel(),
+                'label' => (string) $this->dictionaryLabelTranslator->getReasonLabel(
+                    (string) $reason->getCode(),
+                    (string) $reason->getLabel()
+                ),
             ];
         }
         return $options;
@@ -115,7 +120,10 @@ class Create extends Template
         foreach ($collection as $condition) {
             $options[] = [
                 'value' => $condition->getConditionId(),
-                'label' => $condition->getLabel(),
+                'label' => (string) $this->dictionaryLabelTranslator->getConditionLabel(
+                    (string) $condition->getCode(),
+                    (string) $condition->getLabel()
+                ),
             ];
         }
         return $options;

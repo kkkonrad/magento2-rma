@@ -68,7 +68,7 @@ $conditions = $block->getConditions();
                 <tr>
                     <td style="padding: 4px 0; color: #666666;"><?= $escaper->escapeHtml(__('Resolution:')) ?></td>
                     <td style="padding: 4px 0; font-weight: bold; text-transform: capitalize; color: #333333;">
-                        <?= $escaper->escapeHtml($rma->getResolutionType() ?? '-') ?>
+                        <?= $escaper->escapeHtml($block->getResolutionLabel((string) $rma->getResolutionType())) ?>
                     </td>
                 </tr>
             </table>

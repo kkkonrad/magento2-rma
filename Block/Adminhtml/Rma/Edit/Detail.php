@@ -152,7 +152,7 @@ class Detail extends Template
 
     public function getStatusLabel(string $status): string
     {
-        return (string)__($this->statusSource->getLabel($status));
+        return (string) $this->statusSource->getLabel($status);
     }
 
     public function getStatusValidator(): StatusValidator

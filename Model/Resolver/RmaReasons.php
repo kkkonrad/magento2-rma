@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Rma\Model\Resolver;
 
+use Kkkonrad\Rma\Model\DictionaryLabelTranslator;
 use Kkkonrad\Rma\Model\ResourceModel\RmaReason\CollectionFactory;
 use Magento\Framework\GraphQl\Config\Element\Field;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
@@ -11,7 +12,8 @@ use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 class RmaReasons implements ResolverInterface
 {
     public function __construct(
-        private readonly CollectionFactory $collectionFactory
+        private readonly CollectionFactory $collectionFactory,
+        private readonly DictionaryLabelTranslator $dictionaryLabelTranslator
     ) {
     }
 
@@ -28,7 +30,10 @@ class RmaReasons implements ResolverInterface
         foreach ($collection as $reason) {
             $reasons[] = [
                 'reason_id' => (int) $reason->getReasonId(),
-                'label'     => (string) $reason->getLabel(),
+                'label'     => (string) $this->dictionaryLabelTranslator->getReasonLabel(
+                    (string) $reason->getCode(),
+                    (string) $reason->getLabel()
+                ),
                 'code'      => (string) $reason->getCode(),
             ];
         }

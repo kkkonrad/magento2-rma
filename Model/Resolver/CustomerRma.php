@@ -138,7 +138,7 @@ class CustomerRma implements ResolverInterface
             'order_id'           => (int) $rma->getOrderId(),
             'order_increment_id' => (string) $rma->getOrderIncrementId(),
             'status'             => (string) $rma->getStatus(),
-            'status_label'       => (string) __($this->statusSource->getLabel($rma->getStatus())),
+            'status_label'       => (string) $this->statusSource->getLabel($rma->getStatus()),
             'resolution_type'    => (string) $rma->getResolutionType(),
             'comment'            => $rma->getComment() ? (string) $rma->getComment() : null,
             'created_at'         => (string) $rma->getCreatedAt(),

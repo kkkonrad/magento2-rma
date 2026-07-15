@@ -8,6 +8,7 @@ use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\ResourceModel\RmaItem\CollectionFactory as ItemCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaReason\CollectionFactory as ReasonCollectionFactory;
 use Kkkonrad\Rma\Model\ResourceModel\RmaCondition\CollectionFactory as ConditionCollectionFactory;
+use Kkkonrad\Rma\Model\DictionaryLabelTranslator;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Template;
@@ -33,6 +34,7 @@ class PrintSlip extends Template
         private readonly ConditionCollectionFactory $conditionCollectionFactory,
         private readonly RmaAddressFactory $addressFactory,
         private readonly RmaAddressResource $addressResource,
+        private readonly DictionaryLabelTranslator $dictionaryLabelTranslator,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -85,7 +87,10 @@ class PrintSlip extends Template
         $collection->addFieldToFilter('is_active', ['eq' => 1]);
         $result = [];
         foreach ($collection as $reason) {
-            $result[$reason->getReasonId()] = $reason->getLabel();
+            $result[$reason->getReasonId()] = (string) $this->dictionaryLabelTranslator->getReasonLabel(
+                (string) $reason->getCode(),
+                (string) $reason->getLabel()
+            );
         }
         return $this->reasons = $result;
     }
@@ -101,9 +106,24 @@ class PrintSlip extends Template
         $collection->addFieldToFilter('is_active', ['eq' => 1]);
         $result = [];
         foreach ($collection as $condition) {
-            $result[$condition->getConditionId()] = $condition->getLabel();
+            $result[$condition->getConditionId()] = (string) $this->dictionaryLabelTranslator->getConditionLabel(
+                (string) $condition->getCode(),
+                (string) $condition->getLabel()
+            );
         }
         return $this->conditions = $result;
+    }
+
+    public function getResolutionLabel(string $resolutionType): string
+    {
+        if ($resolutionType === '') {
+            return '-';
+        }
+
+        return (string) $this->dictionaryLabelTranslator->getResolutionLabel(
+            $resolutionType,
+            ucfirst(str_replace('_', ' ', $resolutionType))
+        );
     }
 
     public function getReturnAddress(): ?RmaAddressInterface
@@ -117,4 +137,3 @@ class PrintSlip extends Template
         return $address->getId() ? $address : null;
     }
 }
-

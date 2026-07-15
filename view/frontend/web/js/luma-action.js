@@ -15,11 +15,11 @@ define(['jquery', 'mage/translate'], function ($, $t) {
                         window.location.reload();
                         return;
                     }
-                    $('.rma-view-message').prop('hidden', false).find('span')
+                    $('.rma-view-message').show().find('span')
                         .text(response.message || $t('An error occurred.'));
                 })
                 .fail(function () {
-                    $('.rma-view-message').prop('hidden', false).find('span').text($t('Network error. Please try again.'));
+                    $('.rma-view-message').show().find('span').text($t('Network error. Please try again.'));
                 })
                 .always(function () { $button.prop('disabled', false); });
         });

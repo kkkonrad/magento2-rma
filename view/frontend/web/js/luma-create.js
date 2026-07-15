@@ -15,7 +15,7 @@ define([
 
         function showError(message) {
             $message.find('span').text(message);
-            $message.prop('hidden', false);
+            $message.show();
         }
 
         function optionList(options) {
@@ -57,13 +57,13 @@ define([
                 }
                 $items.append($row);
             });
-            $fieldset.prop('hidden', false);
+            $fieldset.show();
         }
 
         $form.on('change', '.rma-order', function () {
-            $fieldset.prop('hidden', true);
+            $fieldset.hide();
             $items.empty();
-            $message.prop('hidden', true);
+            $message.hide();
             $.getJSON(config.itemsUrl, {order_id: this.value})
                 .done(function (response) {
                     if (response.error) {
@@ -77,7 +77,7 @@ define([
 
         $form.on('submit', function (event) {
             event.preventDefault();
-            $message.prop('hidden', true);
+            $message.hide();
             if (!$form.validation('isValid')) {
                 return;
             }

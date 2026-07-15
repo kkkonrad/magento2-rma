@@ -17,11 +17,10 @@ $config = [
 ];
 ?>
 <div class="rma-luma">
-    <div class="page-title-wrapper"><h1 class="page-title"><span class="base"><?= $escaper->escapeHtml(__('Request a Return')) ?></span></h1></div>
     <?php if (!$orders): ?>
         <div class="message info empty"><span><?= $escaper->escapeHtml(__('No eligible orders found')) ?></span></div>
     <?php else: ?>
-        <div class="message error rma-form-message" hidden><span></span></div>
+        <div class="message error rma-form-message" style="display:none"><span></span></div>
         <form class="form form-rma-create" action="<?= $escaper->escapeUrl($block->getSaveUrl()) ?>" method="post" enctype="multipart/form-data"
               data-mage-init='<?= $escaper->escapeHtmlAttr(json_encode(['Kkkonrad_Rma/js/luma-create' => $config], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)) ?>'>
             <input type="hidden" name="form_key" value="<?= $escaper->escapeHtmlAttr($block->getFormKey()) ?>">
@@ -35,7 +34,7 @@ $config = [
                     </div>
                 <?php endforeach; ?>
             </fieldset>
-            <fieldset class="fieldset rma-items-fieldset" hidden>
+            <fieldset class="fieldset rma-items-fieldset" style="display:none">
                 <legend class="legend"><span><?= $escaper->escapeHtml(__('Select Items')) ?></span></legend>
                 <div class="rma-items"></div>
             </fieldset>

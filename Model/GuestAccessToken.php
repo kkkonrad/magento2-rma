@@ -26,7 +26,20 @@ class GuestAccessToken
     {
         $hash = (string) $rma->getData('guest_access_token_hash');
         $expiresAt = (string) $rma->getData('guest_access_token_expires_at');
-        return $hash !== '' && $expiresAt !== '' && strtotime($expiresAt) >= time()
+        if ($hash === '' || $expiresAt === '') {
+            return false;
+        }
+
+        try {
+            $expiresAtTimestamp = (new \DateTimeImmutable(
+                $expiresAt,
+                new \DateTimeZone('UTC')
+            ))->getTimestamp();
+        } catch (\Exception) {
+            return false;
+        }
+
+        return $expiresAtTimestamp >= time()
             && hash_equals($hash, hash('sha256', $token));
     }
 }
