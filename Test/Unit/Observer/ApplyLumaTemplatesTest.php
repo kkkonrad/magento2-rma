@@ -19,6 +19,9 @@ class ApplyLumaTemplatesTest extends TestCase
         $block = $this->createMock(Template::class);
         $block->expects($this->exactly(7))->method('setTemplate');
         $layout = $this->createMock(LayoutInterface::class);
+        $layout->expects($this->once())
+            ->method('unsetElement')
+            ->with('kkkonrad_rma_guest_order_actions_hyva');
         $layout->expects($this->exactly(7))->method('getBlock')->willReturn($block);
         $observer = new Observer(['layout' => $layout]);
 
@@ -30,6 +33,9 @@ class ApplyLumaTemplatesTest extends TestCase
         $compatibility = $this->createMock(ThemeCompatibility::class);
         $compatibility->method('isHyva')->willReturn(true);
         $layout = $this->createMock(LayoutInterface::class);
+        $layout->expects($this->once())
+            ->method('unsetElement')
+            ->with('kkkonrad_rma_guest_order_actions');
         $layout->expects($this->never())->method('getBlock');
         $observer = new Observer(['layout' => $layout]);
 

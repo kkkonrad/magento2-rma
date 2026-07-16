@@ -8,5 +8,11 @@
                    template="Kkkonrad_Rma::guest/order-actions.phtml"
                    cacheable="false"/>
         </referenceBlock>
+        <referenceBlock name="sales.order.buttons">
+            <block class="Kkkonrad\Rma\Block\Guest\OrderActions"
+                   name="kkkonrad_rma_guest_order_actions_hyva"
+                   template="Kkkonrad_Rma::guest/order-actions.phtml"
+                   cacheable="false"/>
+        </referenceBlock>
     </body>
 </page>

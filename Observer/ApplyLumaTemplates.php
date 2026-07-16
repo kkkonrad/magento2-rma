@@ -26,14 +26,17 @@ class ApplyLumaTemplates implements ObserverInterface
 
     public function execute(Observer $observer): void
     {
-        if ($this->themeCompatibility->isHyva()) {
-            return;
-        }
-
         $layout = $observer->getData('layout');
         if (!$layout instanceof LayoutInterface) {
             return;
         }
+
+        if ($this->themeCompatibility->isHyva()) {
+            $layout->unsetElement('kkkonrad_rma_guest_order_actions');
+            return;
+        }
+
+        $layout->unsetElement('kkkonrad_rma_guest_order_actions_hyva');
 
         foreach (self::TEMPLATES as $blockName => $template) {
             $block = $layout->getBlock($blockName);
