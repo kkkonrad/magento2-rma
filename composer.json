@@ -11,7 +11,8 @@
         "magento/module-store": "*",
         "magento/module-backend": "*",
         "magento/module-ui": "*",
-        "magento/module-catalog": "*"
+        "magento/module-catalog": "*",
+        "magento/module-email": "*"
     },
     "autoload": {
         "files": ["registration.php"],

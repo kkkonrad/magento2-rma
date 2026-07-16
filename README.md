@@ -9,6 +9,7 @@ REST API i GraphQL.
 
 - zgłoszenia zwrotów z poziomu konta klienta;
 - opcjonalna obsługa zwrotów dla zamówień gości;
+- integracja zwrotów gości z natywnym formularzem Magento „Zamówienia i zwroty” (`/sales/guest/form/`);
 - osobne, automatycznie wybierane widoki dla Luma i Hyvä;
 - interakcje Alpine.js w Hyvä oraz RequireJS w Luma;
 - tworzenie i obsługa RMA w panelu administratora w **Sprzedaż > RMA**;

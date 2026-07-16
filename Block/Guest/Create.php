@@ -118,6 +118,11 @@ class Create extends Template
         return $this->getUrl('rma/guest/save');
     }
 
+    public function getUploadUrl(): string
+    {
+        return $this->getSaveUrl();
+    }
+
     public function getFormKey(): string
     {
         return $this->formKey->getFormKey();

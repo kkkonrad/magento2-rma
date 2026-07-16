@@ -51,7 +51,7 @@ class View implements HttpGetActionInterface
 
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
-            return $this->redirectFactory->create()->setPath('rma/guest/index');
+            return $this->redirectFactory->create()->setPath('sales/guest/form');
         }
     }
 }

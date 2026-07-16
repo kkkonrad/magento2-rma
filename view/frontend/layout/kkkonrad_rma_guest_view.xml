@@ -6,6 +6,7 @@
         <referenceContainer name="content">
             <block class="Kkkonrad\Rma\Block\Guest\View"
                    name="kkkonrad_rma_guest_view"
+                   cacheable="false"
                    template="Kkkonrad_Rma::guest/view.phtml"/>
             <block class="Kkkonrad\Rma\Block\CustomHtml"
                    name="kkkonrad_rma_custom_html"

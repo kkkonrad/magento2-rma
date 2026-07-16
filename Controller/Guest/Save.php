@@ -5,56 +5,36 @@ namespace Kkkonrad\Rma\Controller\Guest;
 
 use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\Data\RmaItemInterfaceFactory;
+use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
+use Kkkonrad\Rma\Model\AttachmentUploader;
 use Kkkonrad\Rma\Model\Config;
 use Kkkonrad\Rma\Model\GuestAccessToken;
-use Kkkonrad\Rma\Api\RmaRepositoryInterface;
-use Kkkonrad\Rma\Model\ResourceModel\RmaAttachment;
-use Kkkonrad\Rma\Model\RmaAttachmentFactory;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\App\Action\HttpPostActionInterface;
-use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Request\Http as HttpRequest;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Filesystem;
-use Magento\Framework\Math\Random;
 use Magento\Framework\UrlInterface;
 use Psr\Log\LoggerInterface;
 
 class Save implements HttpPostActionInterface
 {
-    private const ALLOWED_MIME_TYPES = [
-        'jpg'  => 'image/jpeg',
-        'jpeg' => 'image/jpeg',
-        'png'  => 'image/png',
-        'gif'  => 'image/gif',
-        'webp' => 'image/webp',
-        'pdf'  => 'application/pdf',
-        'mp4'  => 'video/mp4',
-        'doc'  => 'application/msword',
-        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'zip'  => 'application/zip',
-    ];
-
     public function __construct(
         private readonly HttpRequest $request,
         private readonly JsonFactory $resultJsonFactory,
         private readonly CustomerSession $customerSession,
         private readonly RmaManagementInterface $rmaManagement,
         private readonly RmaItemInterfaceFactory $rmaItemFactory,
-        private readonly RmaAttachmentFactory $rmaAttachmentFactory,
-        private readonly RmaAttachment $rmaAttachmentResource,
         private readonly Config $config,
-        private readonly Filesystem $filesystem,
-        private readonly Random $random,
+        private readonly AttachmentUploader $attachmentUploader,
         private readonly LoggerInterface $logger,
         private readonly FormKeyValidator $formKeyValidator,
         private readonly UrlInterface $url,
-        private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaReason\CollectionFactory $reasonCollectionFactory
-        ,private readonly GuestAccessToken $guestAccessToken
-        ,private readonly RmaRepositoryInterface $rmaRepository
+        private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaReason\CollectionFactory $reasonCollectionFactory,
+        private readonly GuestAccessToken $guestAccessToken,
+        private readonly RmaRepositoryInterface $rmaRepository
     ) {
     }
 
@@ -76,6 +56,8 @@ class Save implements HttpPostActionInterface
             $comment        = (string) $this->request->getPost('comment');
             $itemsJson      = (string) $this->request->getPost('items', '[]');
             $itemsData      = json_decode($itemsJson, true) ?? [];
+            $requestFiles   = $this->request->getFiles('attachments', []);
+            $attachments    = $this->attachmentUploader->validate(is_array($requestFiles) ? $requestFiles : []);
 
             // Verify guest session authorization matches requested order ID
             $sessionOrderId = (int)$this->customerSession->getGuestRmaOrderId();
@@ -104,17 +86,7 @@ class Save implements HttpPostActionInterface
                     ->addFieldToFilter('require_image', 1);
 
                 if ($reasonCollection->getSize() > 0) {
-                    $files = $this->request->getFiles('attachments') ?: [];
-                    $hasFiles = false;
-                    if (!empty($files['name'])) {
-                        foreach ($files['error'] as $err) {
-                            if ($err === UPLOAD_ERR_OK) {
-                                $hasFiles = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!$hasFiles) {
+                    if ($attachments === []) {
                         throw new LocalizedException(__('At least one of your selected return reasons requires photographic verification. Please attach at least one image or document.'));
                     }
                 }
@@ -148,7 +120,7 @@ class Save implements HttpPostActionInterface
             );
 
             // Handle file uploads
-            $this->processAttachments($rma->getRmaId());
+            $this->attachmentUploader->save($rma->getRmaId(), $attachments);
 
             // Clear guest session variable after creation
             $this->customerSession->setGuestRmaOrderId(null);
@@ -175,54 +147,4 @@ class Save implements HttpPostActionInterface
         }
     }
 
-    private function processAttachments(int $rmaId): void
-    {
-        $files = $this->request->getFiles('attachments') ?: [];
-        if (empty($files['name'])) {
-            return;
-        }
-
-        $mediaDir  = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
-        $uploadDir = 'kkkonrad/rma/' . $rmaId;
-        $allowed   = $this->config->getAllowedExtensions();
-        $maxSize   = $this->config->getMaxFileSizeMb() * 1024 * 1024;
-        $finfo     = new \finfo(FILEINFO_MIME_TYPE);
-
-        foreach ($files['name'] as $index => $fileName) {
-            if ($files['error'][$index] !== UPLOAD_ERR_OK) {
-                continue;
-            }
-
-            $ext          = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-            $tmpPath      = $files['tmp_name'][$index];
-
-            $detectedMime = $finfo->file($tmpPath) ?: 'application/octet-stream';
-            $expectedMime = self::ALLOWED_MIME_TYPES[$ext] ?? null;
-
-            if (!isset(self::ALLOWED_MIME_TYPES[$ext])
-                || !in_array($ext, $allowed, true)
-                || $files['size'][$index] > $maxSize
-                || $detectedMime !== $expectedMime
-                || !is_uploaded_file($tmpPath)
-            ) {
-                throw new LocalizedException(__('One or more attachments are invalid.'));
-            }
-
-            $safeFileName = $this->random->getUniqueHash() . '.' . $ext;
-            $relativePath = $uploadDir . '/' . $safeFileName;
-
-            $mediaDir->create($uploadDir);
-            $mediaDir->copyFile($tmpPath, $relativePath);
-
-            /** @var \Kkkonrad\Rma\Model\RmaAttachment $attachment */
-            $attachment = $this->rmaAttachmentFactory->create();
-            $attachment->setRmaId($rmaId)
-                ->setFilePath($relativePath)
-                ->setFileName($fileName)
-                ->setMimeType($detectedMime)
-                ->setFileSize($files['size'][$index]);
-
-            $this->rmaAttachmentResource->save($attachment);
-        }
-    }
 }

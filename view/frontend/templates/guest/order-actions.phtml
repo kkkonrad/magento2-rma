@@ -1,0 +1,36 @@
+<?php
+declare(strict_types=1);
+
+/** @var \Kkkonrad\Rma\Block\Guest\OrderActions $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+if (!$block->canDisplay()) {
+    return;
+}
+
+$rma = $block->getLatestRma();
+?>
+<?php if ($rma): ?>
+    <form action="<?= $escaper->escapeUrl($block->getAccessUrl()) ?>" method="post" class="inline-block">
+        <?= $block->getBlockHtml('formkey') ?>
+        <input type="hidden" name="order_id" value="<?= (int) $block->getOrderId() ?>">
+        <input type="hidden" name="action" value="view">
+        <button type="submit" class="btn btn-secondary">
+            <?= $escaper->escapeHtml(__('Check return status')) ?>
+            <span class="text-sm font-normal">
+                (<?= $escaper->escapeHtml($rma->getIncrementId()) ?>:
+                <?= $escaper->escapeHtml($block->getStatusLabel($rma->getStatus())) ?>)
+            </span>
+        </button>
+    </form>
+<?php endif; ?>
+<?php if ($block->canCreate()): ?>
+    <form action="<?= $escaper->escapeUrl($block->getAccessUrl()) ?>" method="post" class="inline-block">
+        <?= $block->getBlockHtml('formkey') ?>
+        <input type="hidden" name="order_id" value="<?= (int) $block->getOrderId() ?>">
+        <input type="hidden" name="action" value="create">
+        <button type="submit" class="btn btn-primary">
+            <?= $escaper->escapeHtml(__('Request a return or exchange')) ?>
+        </button>
+    </form>
+<?php endif; ?>

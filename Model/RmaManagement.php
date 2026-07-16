@@ -350,7 +350,9 @@ class RmaManagement implements RmaManagementInterface
         int $customerId
     ): bool {
         // Customer ownership check
-        $isGuestAllowed = ($customerId === 0 && $this->config->allowGuestRma());
+        $isGuestAllowed = $customerId === 0
+            && $order->getCustomerIsGuest()
+            && $this->config->allowGuestRma((int) $order->getStoreId());
         if (!$isGuestAllowed && (int) $order->getCustomerId() !== $customerId) {
             return false;
         }

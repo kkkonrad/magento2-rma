@@ -17,9 +17,9 @@ if (!$rma):
         <p class="text-gray-500">
             <?= $escaper->escapeHtml(__('Return request not found.')) ?>
         </p>
-        <a href="<?= $escaper->escapeUrl($block->getUrl('rma/guest/index')) ?>"
+        <a href="<?= $escaper->escapeUrl($block->getUrl('sales/guest/form')) ?>"
            class="mt-4 inline-block text-primary hover:underline text-sm">
-            ← <?= $escaper->escapeHtml(__('Back to Return Lookup')) ?>
+            <?= $escaper->escapeHtml(__('Back to order lookup')) ?>
         </a>
     </div>
 <?php
@@ -44,9 +44,9 @@ $addMessageUrl = $block->getAddMessageUrl();
     <!-- Breadcrumb + Header -->
     <div class="mb-6">
         <nav class="flex items-center gap-2 text-sm text-gray-500 mb-3">
-            <a href="<?= $escaper->escapeUrl($block->getUrl('rma/guest/index')) ?>"
+            <a href="<?= $escaper->escapeUrl($block->getUrl('sales/guest/view')) ?>"
                class="hover:text-primary transition-colors">
-                <?= $escaper->escapeHtml(__('Return Lookup')) ?>
+                <?= $escaper->escapeHtml(__('Order Information')) ?>
             </a>
             <span>/</span>
             <span class="text-gray-900">#<?= $escaper->escapeHtml($rma->getIncrementId()) ?></span>

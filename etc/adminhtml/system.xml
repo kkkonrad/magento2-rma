@@ -80,7 +80,7 @@
                 <field id="excluded_customer_groups" translate="label comment" type="multiselect" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Excluded Customer Groups</label>
                     <comment>Select customer groups that are NOT allowed to create RMA requests.</comment>
-                    <source_model>Magento\Customer\Model\Config\Source\GroupMultiselect</source_model>
+                    <source_model>Magento\Customer\Model\Config\Source\Group\Multiselect</source_model>
                 </field>
             </group>
 
