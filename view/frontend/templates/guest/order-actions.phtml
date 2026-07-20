@@ -14,7 +14,7 @@ $rma = $block->getLatestRma();
     <form action="<?= $escaper->escapeUrl($block->getAccessUrl()) ?>" method="post" class="inline-block">
         <?= $block->getBlockHtml('formkey') ?>
         <input type="hidden" name="order_id" value="<?= (int) $block->getOrderId() ?>">
-        <input type="hidden" name="action" value="view">
+        <input type="hidden" name="rma_action" value="view">
         <button type="submit" class="btn btn-secondary">
             <?= $escaper->escapeHtml(__('Check return status')) ?>
             <span class="text-sm font-normal">
@@ -28,7 +28,7 @@ $rma = $block->getLatestRma();
     <form action="<?= $escaper->escapeUrl($block->getAccessUrl()) ?>" method="post" class="inline-block">
         <?= $block->getBlockHtml('formkey') ?>
         <input type="hidden" name="order_id" value="<?= (int) $block->getOrderId() ?>">
-        <input type="hidden" name="action" value="create">
+        <input type="hidden" name="rma_action" value="create">
         <button type="submit" class="btn btn-primary">
             <?= $escaper->escapeHtml(__('Request a return or exchange')) ?>
         </button>

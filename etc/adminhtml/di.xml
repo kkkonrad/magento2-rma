@@ -6,4 +6,25 @@
         <plugin name="kkkonrad_rma_add_create_button"
                 type="Kkkonrad\Rma\Plugin\Adminhtml\Order\ViewPlugin"/>
     </type>
+
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="kkkonrad_rma_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\Rma\Grid\Collection</item>
+                <item name="kkkonrad_rma_reason_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaReason\Grid\Collection</item>
+                <item name="kkkonrad_rma_condition_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaCondition\Grid\Collection</item>
+                <item name="kkkonrad_rma_address_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaAddress\Grid\Collection</item>
+                <item name="kkkonrad_rma_policy_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaPolicy\Grid\Collection</item>
+                <item name="kkkonrad_rma_resolution_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\RmaResolution\Grid\Collection</item>
+                <item name="kkkonrad_rma_cannedreply_listing_data_source"
+                      xsi:type="string">Kkkonrad\Rma\Model\ResourceModel\CannedReply\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

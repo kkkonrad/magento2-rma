@@ -44,52 +44,83 @@ interface RmaInterface
     public const RESOLUTION_REPAIR   = 'repair';
     public const RESOLUTION_VOUCHER  = 'voucher';
 
+    /** @return int|null */
     public function getRmaId(): ?int;
+    /** @return $this */
     public function setRmaId(int $rmaId): self;
 
+    /** @return string|null */
     public function getIncrementId(): ?string;
+    /** @return $this */
     public function setIncrementId(string $incrementId): self;
 
+    /** @return int */
     public function getOrderId(): int;
+    /** @return $this */
     public function setOrderId(int $orderId): self;
 
+    /** @return string|null */
     public function getOrderIncrementId(): ?string;
+    /** @return $this */
     public function setOrderIncrementId(?string $orderIncrementId): self;
 
+    /** @return int|null */
     public function getCustomerId(): ?int;
+    /** @return $this */
     public function setCustomerId(?int $customerId): self;
 
+    /** @return string|null */
     public function getCustomerEmail(): ?string;
+    /** @return $this */
     public function setCustomerEmail(?string $email): self;
 
+    /** @return string|null */
     public function getCustomerName(): ?string;
+    /** @return $this */
     public function setCustomerName(?string $name): self;
 
+    /** @return string */
     public function getStatus(): string;
+    /** @return $this */
     public function setStatus(string $status): self;
 
+    /** @return string|null */
     public function getResolutionType(): ?string;
+    /** @return $this */
     public function setResolutionType(?string $resolutionType): self;
 
+    /** @return string|null */
     public function getComment(): ?string;
+    /** @return $this */
     public function setComment(?string $comment): self;
 
+    /** @return int */
     public function getStoreId(): int;
+    /** @return $this */
     public function setStoreId(int $storeId): self;
 
+    /** @return string|null */
     public function getCreatedAt(): ?string;
+    /** @return $this */
     public function setCreatedAt(?string $createdAt): self;
 
+    /** @return string|null */
     public function getUpdatedAt(): ?string;
+    /** @return $this */
     public function setUpdatedAt(?string $updatedAt): self;
 
+    /** @return string|null */
     public function getResolvedAt(): ?string;
+    /** @return $this */
     public function setResolvedAt(?string $resolvedAt): self;
 
+    /** @return string|null */
     public function getShippingLabel(): ?string;
+    /** @return $this */
     public function setShippingLabel(?string $shippingLabel): self;
 
+    /** @return int|null */
     public function getReturnAddressId(): ?int;
+    /** @return $this */
     public function setReturnAddressId(?int $returnAddressId): self;
 }
-

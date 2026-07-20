@@ -84,7 +84,10 @@ class UploadShippingLabel extends Action implements HttpPostActionInterface
             $relativePath = $uploadDir . '/' . $safeFileName;
 
             $mediaDir->create($uploadDir);
-            $mediaDir->copyFile($files['tmp_name'], $relativePath);
+            $mediaDir->getDriver()->copy(
+                $files['tmp_name'],
+                $mediaDir->getAbsolutePath($relativePath)
+            );
 
             // Delete old label if it exists
             $oldLabel = $rma->getShippingLabel();

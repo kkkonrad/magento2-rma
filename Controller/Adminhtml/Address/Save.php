@@ -39,6 +39,8 @@ class Save extends Action implements HttpPostActionInterface
                     $this->messageManager->addErrorMessage(__('This return address no longer exists.'));
                     return $resultRedirect->setPath('*/*/index');
                 }
+            } else {
+                unset($data['address_id']);
             }
 
             $model->setData($data);

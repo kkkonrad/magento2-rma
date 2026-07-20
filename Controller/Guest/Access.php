@@ -59,7 +59,7 @@ class Access implements HttpPostActionInterface
                 throw new LocalizedException(__('Guest returns are currently unavailable.'));
             }
 
-            if ((string) $this->request->getParam('action') === 'create') {
+            if ((string) $this->request->getParam('rma_action') === 'create') {
                 $activeRma = $this->guestRmaLocator->getActiveForOrder((int) $order->getEntityId());
                 if ($activeRma) {
                     return $this->redirectToRma($activeRma);

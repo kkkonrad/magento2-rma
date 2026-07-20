@@ -39,6 +39,8 @@ class Save extends Action implements HttpPostActionInterface
                     $this->messageManager->addErrorMessage(__('This return resolution no longer exists.'));
                     return $resultRedirect->setPath('*/*/index');
                 }
+            } else {
+                unset($data['resolution_id']);
             }
 
             $model->setData($data);
