@@ -39,6 +39,8 @@ class Save extends Action implements HttpPostActionInterface
                     $this->messageManager->addErrorMessage(__('This canned reply no longer exists.'));
                     return $resultRedirect->setPath('*/*/index');
                 }
+            } else {
+                unset($data['reply_id']);
             }
 
             $model->setData($data);

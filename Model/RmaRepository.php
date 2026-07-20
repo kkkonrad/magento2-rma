@@ -4,14 +4,14 @@ declare(strict_types=1);
 namespace Kkkonrad\Rma\Model;
 
 use Kkkonrad\Rma\Api\Data\RmaInterface;
+use Kkkonrad\Rma\Api\Data\RmaSearchResultsInterface;
+use Kkkonrad\Rma\Api\Data\RmaSearchResultsInterfaceFactory;
 use Kkkonrad\Rma\Api\RmaRepositoryInterface;
 use Kkkonrad\Rma\Model\ResourceModel\Rma as RmaResource;
 use Kkkonrad\Rma\Model\ResourceModel\Rma\CollectionFactory;
 use Magento\Framework\Api\SearchCriteria\CollectionProcessorInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
-use Magento\Framework\Api\SearchResultsInterface;
-use Magento\Framework\Api\SearchResultsInterfaceFactory;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -24,7 +24,7 @@ class RmaRepository implements RmaRepositoryInterface
         private readonly RmaResource $rmaResource,
         private readonly CollectionFactory $collectionFactory,
         private readonly CollectionProcessorInterface $collectionProcessor,
-        private readonly SearchResultsInterfaceFactory $searchResultsFactory,
+        private readonly RmaSearchResultsInterfaceFactory $searchResultsFactory,
         private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
         private readonly AttachmentUploader $attachmentUploader,
         private readonly LoggerInterface $logger
@@ -93,7 +93,7 @@ class RmaRepository implements RmaRepositoryInterface
     /**
      * @inheritDoc
      */
-    public function getList(SearchCriteriaInterface $searchCriteria): SearchResultsInterface
+    public function getList(SearchCriteriaInterface $searchCriteria): RmaSearchResultsInterface
     {
         $collection = $this->collectionFactory->create();
         $this->collectionProcessor->process($searchCriteria, $collection);
@@ -111,8 +111,11 @@ class RmaRepository implements RmaRepositoryInterface
      *
      * Security: enforces customer_id filter so customers can only see their own RMAs.
      */
-    public function getListForCustomer(int $customerId, SearchCriteriaInterface $searchCriteria): SearchResultsInterface
-    {
+    public function getListForCustomer(
+        int $customerId,
+        ?SearchCriteriaInterface $searchCriteria = null
+    ): RmaSearchResultsInterface {
+        $searchCriteria ??= $this->searchCriteriaBuilder->create();
         $collection = $this->collectionFactory->create();
         // Process caller-provided criteria first (sorting, pagination)
         $this->collectionProcessor->process($searchCriteria, $collection);

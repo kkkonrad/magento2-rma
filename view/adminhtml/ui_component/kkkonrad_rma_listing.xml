@@ -224,6 +224,7 @@
             <settings>
                 <options class="Kkkonrad\Rma\Model\Source\Status"/>
                 <filter>select</filter>
+                <dataType>select</dataType>
                 <label translate="true">Status</label>
             </settings>
         </column>
@@ -232,6 +233,7 @@
             <settings>
                 <options class="Kkkonrad\Rma\Model\Source\ResolutionType"/>
                 <filter>select</filter>
+                <dataType>select</dataType>
                 <label translate="true">Resolution</label>
             </settings>
         </column>

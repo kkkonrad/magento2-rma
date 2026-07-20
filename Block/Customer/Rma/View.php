@@ -13,6 +13,7 @@ use Kkkonrad\Rma\Model\ResourceModel\RmaStatusHistory\CollectionFactory as Histo
 use Kkkonrad\Rma\Model\Source\Status;
 use Kkkonrad\Rma\Model\StatusValidator;
 use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
@@ -34,6 +35,7 @@ class View extends Template
         private readonly Config $config,
         private readonly StatusValidator $statusValidator,
         private readonly DictionaryLabelTranslator $dictionaryLabelTranslator,
+        private readonly FormKey $formKey,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -163,6 +165,11 @@ class View extends Template
     public function getAddMessageUrl(): string
     {
         return $this->getUrl('rma/index/addMessage');
+    }
+
+    public function getFormKey(): string
+    {
+        return $this->formKey->getFormKey();
     }
 
     public function getCancelUrl(): string

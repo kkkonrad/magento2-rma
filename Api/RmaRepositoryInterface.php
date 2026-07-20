@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Kkkonrad\Rma\Api;
 
 use Kkkonrad\Rma\Api\Data\RmaInterface;
+use Kkkonrad\Rma\Api\Data\RmaSearchResultsInterface;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Api\SearchResultsInterface;
 use Magento\Framework\Exception\CouldNotDeleteException;
@@ -57,18 +58,21 @@ interface RmaRepositoryInterface
      * Get list of RMAs
      *
      * @param \Magento\Framework\Api\SearchCriteriaInterface $searchCriteria
-     * @return \Magento\Framework\Api\SearchResultsInterface
+     * @return \Kkkonrad\Rma\Api\Data\RmaSearchResultsInterface
      */
-    public function getList(SearchCriteriaInterface $searchCriteria): SearchResultsInterface;
+    public function getList(SearchCriteriaInterface $searchCriteria): RmaSearchResultsInterface;
 
     /**
      * Get list of RMAs for a specific customer (security-enforced)
      *
      * @param int $customerId
-     * @param \Magento\Framework\Api\SearchCriteriaInterface $searchCriteria
-     * @return \Magento\Framework\Api\SearchResultsInterface
+     * @param \Magento\Framework\Api\SearchCriteriaInterface|null $searchCriteria
+     * @return \Kkkonrad\Rma\Api\Data\RmaSearchResultsInterface
      */
-    public function getListForCustomer(int $customerId, SearchCriteriaInterface $searchCriteria): SearchResultsInterface;
+    public function getListForCustomer(
+        int $customerId,
+        ?SearchCriteriaInterface $searchCriteria = null
+    ): RmaSearchResultsInterface;
 
     /**
      * Delete RMA
