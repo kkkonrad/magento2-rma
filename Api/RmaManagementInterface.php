@@ -24,6 +24,9 @@ interface RmaManagementInterface
      * @param string $resolutionType
      * @param RmaItemInterface[] $items
      * @param string|null $comment
+     * @param bool $termsAccepted
+     * @param bool $hasAttachments
+     * @param bool $dispatchEvent
      * @return RmaInterface
      * @throws LocalizedException
      */
@@ -33,7 +36,9 @@ interface RmaManagementInterface
         string $resolutionType,
         array $items,
         ?string $comment = null,
-        bool $termsAccepted = false
+        bool $termsAccepted = false,
+        bool $hasAttachments = false,
+        bool $dispatchEvent = true
     ): RmaInterface;
 
     /**
@@ -104,10 +109,17 @@ interface RmaManagementInterface
      *
      * @param int $rmaId
      * @param string|null $comment
+     * @param string $changedBy
+     * @param int|null $changedById
      * @return \Kkkonrad\Rma\Api\Data\RmaInterface
      * @throws LocalizedException
      */
-    public function cancel(int $rmaId, ?string $comment = null): RmaInterface;
+    public function cancel(
+        int $rmaId,
+        ?string $comment = null,
+        string $changedBy = 'system',
+        ?int $changedById = null
+    ): RmaInterface;
 
     /**
      * Mark RMA as resolved and close it

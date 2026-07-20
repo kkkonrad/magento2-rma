@@ -18,6 +18,7 @@ use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Lock\LockManagerInterface;
 use Magento\Framework\Stdlib\DateTime\DateTime as MagentoDateTime;
 use Magento\Sales\Api\CreditmemoManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
@@ -52,7 +53,9 @@ class RmaManagement implements RmaManagementInterface
         private readonly RmaReasonFactory $rmaReasonFactory,
         private readonly RmaReasonResource $rmaReasonResource,
         private readonly RmaConditionFactory $rmaConditionFactory,
-        private readonly RmaConditionResource $rmaConditionResource
+        private readonly RmaConditionResource $rmaConditionResource,
+        private readonly InvoiceDateProvider $invoiceDateProvider,
+        private readonly LockManagerInterface $lockManager
     ) {
     }
 
@@ -67,7 +70,9 @@ class RmaManagement implements RmaManagementInterface
         string $resolutionType,
         array $items,
         ?string $comment = null,
-        bool $termsAccepted = false
+        bool $termsAccepted = false,
+        bool $hasAttachments = false,
+        bool $dispatchEvent = true
     ): RmaInterface {
         if ($items === []) {
             throw new LocalizedException(__('A return request must contain at least one item.'));
@@ -103,8 +108,13 @@ class RmaManagement implements RmaManagementInterface
             throw new LocalizedException(__('Invalid resolution type.'));
         }
 
-        // Fix 6: Race condition guard — prevent duplicate active RMAs for the same order
-        $this->assertNoDuplicateActiveRma($orderId, $customerId);
+        $lockName = sprintf('kkkonrad_rma_create_%d_%d', $orderId, $customerId);
+        if (!$this->lockManager->lock($lockName, 10)) {
+            throw new LocalizedException(__('Another return request for this order is being processed.'));
+        }
+
+        try {
+            $this->assertNoDuplicateActiveRma($orderId, $customerId);
 
         $orderItemIds = [];
         foreach ($items as $itemData) {
@@ -138,27 +148,37 @@ class RmaManagement implements RmaManagementInterface
         }
 
 
-        $connection = $this->resourceConnection->getConnection();
-        $connection->beginTransaction();
-        try {
-            $rma->setIncrementId($this->getNextIncrementId($connection));
-            $this->rmaRepository->save($rma);
-            foreach ($items as $itemData) {
-                $this->saveRmaItem($rma->getRmaId(), $itemData, $order, $resolutionType);
+            $connection = $this->resourceConnection->getConnection();
+            $connection->beginTransaction();
+            try {
+                $rma->setIncrementId($this->getNextIncrementId($connection));
+                $this->rmaRepository->save($rma);
+                foreach ($items as $itemData) {
+                    $this->saveRmaItem(
+                        $rma->getRmaId(),
+                        $itemData,
+                        $order,
+                        $resolutionType,
+                        $hasAttachments
+                    );
+                }
+                $this->addStatusHistory($rma->getRmaId(), null, RmaInterface::STATUS_NEW, null, 'customer', $customerId);
+                $connection->commit();
+            } catch (\Throwable $e) {
+                $connection->rollBack();
+                throw $e;
             }
-            $this->addStatusHistory($rma->getRmaId(), null, RmaInterface::STATUS_NEW, null, 'customer', $customerId);
-            $connection->commit();
-        } catch (\Throwable $e) {
-            $connection->rollBack();
-            throw $e;
+        } finally {
+            $this->lockManager->unlock($lockName);
         }
 
-        // Emit event
-        $this->eventManager->dispatch('kkkonrad_rma_created', [
-            'rma'   => $rma,
-            'order' => $order,
-            'items' => $items,
-        ]);
+        if ($dispatchEvent) {
+            $this->eventManager->dispatch('kkkonrad_rma_created', [
+                'rma'   => $rma,
+                'order' => $order,
+                'items' => $items,
+            ]);
+        }
 
         return $rma;
     }
@@ -172,6 +192,25 @@ class RmaManagement implements RmaManagementInterface
         ?string $comment = null,
         string $changedBy = 'system',
         ?int $changedById = null
+    ): RmaInterface {
+        $lockName = 'kkkonrad_rma_status_' . $rmaId;
+        if (!$this->lockManager->lock($lockName, 10)) {
+            throw new LocalizedException(__('This RMA is currently being updated.'));
+        }
+
+        try {
+            return $this->changeStatusUnlocked($rmaId, $newStatus, $comment, $changedBy, $changedById);
+        } finally {
+            $this->lockManager->unlock($lockName);
+        }
+    }
+
+    private function changeStatusUnlocked(
+        int $rmaId,
+        string $newStatus,
+        ?string $comment,
+        string $changedBy,
+        ?int $changedById
     ): RmaInterface {
         $rma       = $this->rmaRepository->getById($rmaId);
         $oldStatus = $rma->getStatus();
@@ -250,7 +289,17 @@ class RmaManagement implements RmaManagementInterface
             ->setAuthorName($authorName)
             ->setIsInternal($isInternal);
 
-        $this->rmaMessageResource->save($rmaMessage);
+        $connection = $this->resourceConnection->getConnection();
+        $connection->beginTransaction();
+        try {
+            $this->rmaMessageResource->save($rmaMessage);
+            $rma->setUpdatedAt($this->dateTime->gmtDate());
+            $this->rmaRepository->save($rma);
+            $connection->commit();
+        } catch (\Throwable $exception) {
+            $connection->rollBack();
+            throw $exception;
+        }
 
         $this->eventManager->dispatch('kkkonrad_rma_message_added', [
             'rma'     => $rma,
@@ -265,27 +314,40 @@ class RmaManagement implements RmaManagementInterface
      */
     public function approve(int $rmaId, ?string $comment = null): RmaInterface
     {
-        $rma = $this->changeStatus(
-            $rmaId,
-            RmaInterface::STATUS_APPROVED,
-            $comment ?? (string) __('RMA has been approved.'),
-            'admin'
-        );
-
-        // Fix 5: Create credit memo only for returned items, not the whole order
-        if ($rma->getResolutionType() === RmaInterface::RESOLUTION_REFUND) {
-            try {
-                $this->createCreditMemo($rma);
-            } catch (\Exception $e) {
-                $this->logger->error('RMA credit memo creation failed: ' . $e->getMessage(), [
-                    'rma_id'    => $rmaId,
-                    'exception' => $e,
-                ]);
-                // Don't fail approval — log and continue. Admin can create CM manually.
-            }
+        $lockName = 'kkkonrad_rma_status_' . $rmaId;
+        if (!$this->lockManager->lock($lockName, 10)) {
+            throw new LocalizedException(__('This RMA is already being approved.'));
         }
 
-        return $rma;
+        try {
+            $rma = $this->rmaRepository->getById($rmaId);
+            $this->statusValidator->validate($rma->getStatus(), RmaInterface::STATUS_APPROVED);
+
+            if ($rma->getResolutionType() === RmaInterface::RESOLUTION_REFUND) {
+                try {
+                    $this->createCreditMemo($rma);
+                } catch (\Throwable $e) {
+                    $this->logger->error('RMA credit memo creation failed: ' . $e->getMessage(), [
+                        'rma_id'    => $rmaId,
+                        'exception' => $e,
+                    ]);
+                    throw new LocalizedException(
+                        __('The RMA was not approved because the credit memo could not be created: %1', $e->getMessage()),
+                        $e
+                    );
+                }
+            }
+
+            return $this->changeStatusUnlocked(
+                $rmaId,
+                RmaInterface::STATUS_APPROVED,
+                $comment ?? (string) __('RMA has been approved.'),
+                'admin',
+                null
+            );
+        } finally {
+            $this->lockManager->unlock($lockName);
+        }
     }
 
     /**
@@ -304,13 +366,19 @@ class RmaManagement implements RmaManagementInterface
     /**
      * @inheritDoc
      */
-    public function cancel(int $rmaId, ?string $comment = null): RmaInterface
+    public function cancel(
+        int $rmaId,
+        ?string $comment = null,
+        string $changedBy = 'system',
+        ?int $changedById = null
+    ): RmaInterface
     {
         return $this->changeStatus(
             $rmaId,
             RmaInterface::STATUS_CANCELLED,
             $comment ?? (string) __('RMA has been cancelled.'),
-            'system'
+            $changedBy,
+            $changedById
         );
     }
 
@@ -373,10 +441,12 @@ class RmaManagement implements RmaManagementInterface
             return false;
         }
 
-        $invoicedAt = $order->getUpdatedAt() ?? $order->getCreatedAt();
+        $invoiceDate = $this->invoiceDateProvider->getLatestInvoiceDate($order);
+        if ($invoiceDate === null) {
+            return false;
+        }
         try {
-            $invoiceDate = new \DateTimeImmutable($invoicedAt);
-            $now         = new \DateTimeImmutable();
+            $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
         } catch (\Exception) {
             return false;
         }
@@ -477,7 +547,8 @@ class RmaManagement implements RmaManagementInterface
         int $rmaId,
         RmaItemInterface $itemData,
         \Magento\Sales\Api\Data\OrderInterface $order,
-        string $resolutionType
+        string $resolutionType,
+        bool $hasAttachments
     ): void {
         $matchedOrderItem = null;
 
@@ -495,6 +566,10 @@ class RmaManagement implements RmaManagementInterface
             );
         }
 
+        if ($matchedOrderItem->getParentItemId() || $matchedOrderItem->isDummy()) {
+            throw new LocalizedException(__('The selected order item cannot be returned directly.'));
+        }
+
         // Fix 4b: Validate requested qty
         $requestedQty = $itemData->getQty();
         if ($requestedQty <= 0) {
@@ -509,13 +584,18 @@ class RmaManagement implements RmaManagementInterface
             );
         }
 
-        $this->validateDictionaryValue(
+        $reason = $this->validateDictionaryValue(
             $itemData->getReasonId(),
             $this->rmaReasonFactory,
             $this->rmaReasonResource,
             'reason_id',
             __('Invalid or inactive return reason.')
         );
+        if ((bool) $reason->getData('require_image') && !$hasAttachments) {
+            throw new LocalizedException(
+                __('At least one selected return reason requires an attachment.')
+            );
+        }
         $this->validateDictionaryValue(
             $itemData->getConditionId(),
             $this->rmaConditionFactory,
@@ -533,12 +613,17 @@ class RmaManagement implements RmaManagementInterface
         }
 
         // Return window validation per product policy
-        $invoicedAt = $order->getUpdatedAt() ?? $order->getCreatedAt();
+        $invoiceDate = $this->invoiceDateProvider->getLatestInvoiceDate(
+            $order,
+            (int) $matchedOrderItem->getItemId()
+        );
+        if ($invoiceDate === null) {
+            throw new LocalizedException(__('No invoice was found for product "%1".', $matchedOrderItem->getName()));
+        }
         try {
-            $invoiceDate = new \DateTimeImmutable($invoicedAt);
             $returnWindowDays = $this->getReturnWindowDaysForProduct($matchedOrderItem, $resolutionType);
             $deadline = $invoiceDate->modify('+' . $returnWindowDays . ' days');
-            $now = new \DateTimeImmutable();
+            $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
             if ($now > $deadline) {
                 throw new LocalizedException(
                     __('The return window for product "%1" has expired.', $matchedOrderItem->getName())
@@ -573,7 +658,7 @@ class RmaManagement implements RmaManagementInterface
         object $resource,
         string $idField,
         \Magento\Framework\Phrase $errorMessage
-    ): void {
+    ): object {
         $item = $factory->create();
         if ($id !== null) {
             $resource->load($item, $id, $idField);
@@ -581,6 +666,7 @@ class RmaManagement implements RmaManagementInterface
         if (!(int) $item->getData('is_active')) {
             throw new LocalizedException($errorMessage);
         }
+        return $item;
     }
 
     private function getNextIncrementId(\Magento\Framework\DB\Adapter\AdapterInterface $connection): string
@@ -634,19 +720,22 @@ class RmaManagement implements RmaManagementInterface
         }
 
         if (empty($qtys)) {
-            return;
+            throw new LocalizedException(__('The RMA does not contain refundable items.'));
         }
 
         $creditmemo = $this->creditmemoFactory->createByOrder($order, ['qtys' => $qtys]);
 
-        if ($creditmemo) {
-            $this->creditmemoManagement->refund($creditmemo);
-
-            $this->logger->info('RMA partial credit memo created.', [
-                'rma_id'   => $rma->getRmaId(),
-                'order_id' => $rma->getOrderId(),
-                'qtys'     => $qtys,
-            ]);
+        if (!$creditmemo) {
+            throw new LocalizedException(__('The credit memo could not be prepared.'));
         }
+
+        $this->creditmemoManagement->refund($creditmemo);
+
+        $this->logger->info('RMA partial credit memo created.', [
+            'rma_id'   => $rma->getRmaId(),
+            'order_id' => $rma->getOrderId(),
+            'qtys'     => $qtys,
+        ]);
     }
+
 }

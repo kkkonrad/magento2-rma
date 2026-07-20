@@ -198,12 +198,12 @@ $addMessageUrl = $block->getAddMessageUrl();
                     <div class="p-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
                         <?php foreach ($attachments as $attachment): ?>
                             <?php $isImage = str_starts_with($attachment->getMimeType(), 'image/'); ?>
-                            <a href="<?= $escaper->escapeUrl($block->getMediaUrl($attachment->getFilePath())) ?>"
+                            <a href="<?= $escaper->escapeUrl($block->getAttachmentUrl((int) $attachment->getAttachmentId())) ?>"
                                target="_blank"
                                rel="noopener"
                                class="block border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-shadow">
                                 <?php if ($isImage): ?>
-                                    <img src="<?= $escaper->escapeUrl($block->getMediaUrl($attachment->getFilePath())) ?>"
+                                    <img src="<?= $escaper->escapeUrl($block->getAttachmentUrl((int) $attachment->getAttachmentId())) ?>"
                                          alt="<?= $escaper->escapeHtmlAttr($attachment->getFileName()) ?>"
                                          class="w-full h-28 object-cover"/>
                                 <?php else: ?>
@@ -286,7 +286,7 @@ $addMessageUrl = $block->getAddMessageUrl();
                     <p class="text-xs text-indigo-700 mb-4 leading-relaxed">
                         <?= $escaper->escapeHtml(__('Please download and print this shipping label, then attach it to your return package.')) ?>
                     </p>
-                    <a href="<?= $escaper->escapeUrl($block->getMediaUrl($rma->getShippingLabel())) ?>"
+                    <a href="<?= $escaper->escapeUrl($block->getShippingLabelUrl()) ?>"
                        target="_blank"
                        rel="noopener"
                        class="block text-center w-full px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 shadow-sm transition-colors">

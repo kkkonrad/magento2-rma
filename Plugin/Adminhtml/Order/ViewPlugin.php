@@ -27,7 +27,9 @@ class ViewPlugin
         $allowedStatuses = $this->config->getAllowedOrderStatuses($storeId);
 
         if (in_array($order->getStatus(), $allowedStatuses, true)) {
-            $url = $subject->getUrl('kkkonrad_rma/rma/create', ['order_id' => $order->getId()]);
+            $url = $subject->getUrl('kkkonrad_rma/rma/create', [
+                'increment_id' => $order->getIncrementId(),
+            ]);
             $subject->addButton(
                 'kkkonrad_create_rma',
                 [

@@ -67,6 +67,8 @@ class RmaManagementTest extends TestCase
     private \Kkkonrad\Rma\Model\RmaConditionFactory&MockObject $rmaConditionFactory;
     private \Kkkonrad\Rma\Model\ResourceModel\RmaCondition&MockObject $rmaConditionResource;
     private AdapterInterface&MockObject $connection;
+    private \Kkkonrad\Rma\Model\InvoiceDateProvider&MockObject $invoiceDateProvider;
+    private \Magento\Framework\Lock\LockManagerInterface&MockObject $lockManager;
 
 
     protected function setUp(): void
@@ -99,6 +101,9 @@ class RmaManagementTest extends TestCase
         $this->rmaReasonResource     = $this->createMock(\Kkkonrad\Rma\Model\ResourceModel\RmaReason::class);
         $this->rmaConditionFactory   = $this->createMock(\Kkkonrad\Rma\Model\RmaConditionFactory::class);
         $this->rmaConditionResource  = $this->createMock(\Kkkonrad\Rma\Model\ResourceModel\RmaCondition::class);
+        $this->invoiceDateProvider = $this->createMock(\Kkkonrad\Rma\Model\InvoiceDateProvider::class);
+        $this->lockManager = $this->createMock(\Magento\Framework\Lock\LockManagerInterface::class);
+        $this->lockManager->method('lock')->willReturn(true);
 
         $this->rmaManagement = new RmaManagement(
             $this->rmaRepository,
@@ -126,7 +131,9 @@ class RmaManagementTest extends TestCase
             $this->rmaReasonFactory,
             $this->rmaReasonResource,
             $this->rmaConditionFactory,
-            $this->rmaConditionResource
+            $this->rmaConditionResource,
+            $this->invoiceDateProvider,
+            $this->lockManager
         );
     }
 
@@ -237,6 +244,31 @@ class RmaManagementTest extends TestCase
         $this->expectExceptionMessage('Invalid message author type');
 
         $this->rmaManagement->addMessage(1, 'Hello', 'unknown');
+    }
+
+    public function testApproveDoesNotChangeStatusWhenCreditMemoCreationFails(): void
+    {
+        $rma = $this->createMock(Rma::class);
+        $rma->method('getStatus')->willReturn(RmaInterface::STATUS_PENDING_REVIEW);
+        $rma->method('getResolutionType')->willReturn(RmaInterface::RESOLUTION_REFUND);
+        $rma->method('getOrderId')->willReturn(10);
+        $rma->method('getRmaId')->willReturn(5);
+
+        $this->rmaRepository->expects($this->once())->method('getById')->with(5)->willReturn($rma);
+        $this->statusValidator->expects($this->once())->method('validate')->with(
+            RmaInterface::STATUS_PENDING_REVIEW,
+            RmaInterface::STATUS_APPROVED
+        );
+        $this->orderRepository->method('get')->with(10)->willReturn($this->createMock(Order::class));
+        $this->rmaItemCollectionFactory->method('create')
+            ->willThrowException(new \RuntimeException('collection failed'));
+        $this->rmaRepository->expects($this->never())->method('save');
+        $this->eventManager->expects($this->never())->method('dispatch');
+        $this->lockManager->expects($this->once())->method('unlock')->with('kkkonrad_rma_status_5');
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage('was not approved');
+        $this->rmaManagement->approve(5);
     }
 
     public function testIsOrderEligibleForRmaReturnsFalseForNonExistentOrder(): void

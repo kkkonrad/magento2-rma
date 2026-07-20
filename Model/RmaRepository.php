@@ -15,6 +15,7 @@ use Magento\Framework\Api\SearchResultsInterfaceFactory;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Psr\Log\LoggerInterface;
 
 class RmaRepository implements RmaRepositoryInterface
 {
@@ -24,7 +25,9 @@ class RmaRepository implements RmaRepositoryInterface
         private readonly CollectionFactory $collectionFactory,
         private readonly CollectionProcessorInterface $collectionProcessor,
         private readonly SearchResultsInterfaceFactory $searchResultsFactory,
-        private readonly SearchCriteriaBuilder $searchCriteriaBuilder
+        private readonly SearchCriteriaBuilder $searchCriteriaBuilder,
+        private readonly AttachmentUploader $attachmentUploader,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -130,6 +133,8 @@ class RmaRepository implements RmaRepositoryInterface
      */
     public function delete(RmaInterface $rma): bool
     {
+        $rmaId = (int) $rma->getRmaId();
+        $shippingLabel = $rma->getShippingLabel() ? (string) $rma->getShippingLabel() : null;
         try {
             $this->rmaResource->delete($rma);
         } catch (\Exception $e) {
@@ -137,6 +142,15 @@ class RmaRepository implements RmaRepositoryInterface
                 __('Could not delete RMA with ID %1: %2', $rma->getRmaId(), $e->getMessage()),
                 $e
             );
+        }
+
+        try {
+            $this->attachmentUploader->deleteForRma($rmaId, $shippingLabel);
+        } catch (\Throwable $exception) {
+            $this->logger->warning('RMA files could not be removed after entity deletion.', [
+                'rma_id' => $rmaId,
+                'exception' => $exception,
+            ]);
         }
         return true;
     }

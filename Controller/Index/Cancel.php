@@ -63,7 +63,9 @@ class Cancel implements HttpPostActionInterface
 
             $this->rmaManagement->cancel(
                 $rmaId,
-                (string) __('Cancelled by customer.')
+                (string) __('Cancelled by customer.'),
+                'customer',
+                $customerId
             );
 
             return $result->setData([

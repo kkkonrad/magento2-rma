@@ -26,7 +26,12 @@ class Cancel extends Action implements HttpPostActionInterface
         $comment = (string) $this->getRequest()->getParam('comment', '');
 
         try {
-            $this->rmaManagement->cancel($rmaId, $comment ?: null);
+            $this->rmaManagement->cancel(
+                $rmaId,
+                $comment ?: null,
+                'admin',
+                (int) $this->_auth->getUser()->getId()
+            );
             $this->messageManager->addSuccessMessage(__('RMA has been cancelled.'));
         } catch (LocalizedException $e) {
             $this->messageManager->addErrorMessage($e->getMessage());

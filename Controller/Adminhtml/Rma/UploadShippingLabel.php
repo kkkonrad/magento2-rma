@@ -44,10 +44,7 @@ class UploadShippingLabel extends Action implements HttpPostActionInterface
             if ($delete) {
                 $oldLabel = $rma->getShippingLabel();
                 if ($oldLabel) {
-                    $mediaDir = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
-                    if ($mediaDir->isExist($oldLabel)) {
-                        $mediaDir->delete($oldLabel);
-                    }
+                    $this->deleteStoredFile((string) $oldLabel);
                     $rma->setShippingLabel(null);
                     $this->rmaRepository->save($rma);
                     $this->messageManager->addSuccessMessage(__('Shipping label has been deleted.'));
@@ -81,8 +78,8 @@ class UploadShippingLabel extends Action implements HttpPostActionInterface
             }
 
             // Upload
-            $mediaDir     = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
-            $uploadDir    = 'kkkonrad/rma/labels/' . $rmaId;
+            $mediaDir     = $this->filesystem->getDirectoryWrite(DirectoryList::VAR_DIR);
+            $uploadDir    = 'rma/labels/' . $rmaId;
             $safeFileName = $this->random->getUniqueHash() . '.pdf';
             $relativePath = $uploadDir . '/' . $safeFileName;
 
@@ -91,8 +88,8 @@ class UploadShippingLabel extends Action implements HttpPostActionInterface
 
             // Delete old label if it exists
             $oldLabel = $rma->getShippingLabel();
-            if ($oldLabel && $mediaDir->isExist($oldLabel)) {
-                $mediaDir->delete($oldLabel);
+            if ($oldLabel) {
+                $this->deleteStoredFile((string) $oldLabel);
             }
 
             $rma->setShippingLabel($relativePath);
@@ -109,5 +106,16 @@ class UploadShippingLabel extends Action implements HttpPostActionInterface
         }
 
         return $resultRedirect->setPath('*/*/edit', ['rma_id' => $rmaId]);
+    }
+
+    private function deleteStoredFile(string $filePath): void
+    {
+        foreach ([DirectoryList::VAR_DIR, DirectoryList::MEDIA] as $directoryCode) {
+            $directory = $this->filesystem->getDirectoryWrite($directoryCode);
+            if ($directory->isExist($filePath)) {
+                $directory->delete($filePath);
+                return;
+            }
+        }
     }
 }

@@ -18,7 +18,6 @@ use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
 use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Resolver for customerRma query — returns full RMA details for the authenticated customer.
@@ -32,7 +31,7 @@ class CustomerRma implements ResolverInterface
         private readonly MessageCollectionFactory $messageCollectionFactory,
         private readonly HistoryCollectionFactory $historyCollectionFactory,
         private readonly AttachmentCollectionFactory $attachmentCollectionFactory,
-        private readonly StoreManagerInterface $storeManager,
+        private readonly \Magento\Framework\UrlInterface $urlBuilder,
         private readonly Status $statusSource
     ) {
     }
@@ -64,8 +63,6 @@ class CustomerRma implements ResolverInterface
         if ((int) $rma->getCustomerId() !== $customerId) {
             throw new GraphQlNoSuchEntityException(__('RMA with ID %1 not found.', $rmaId));
         }
-
-        $baseMediaUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
 
         // Items
         $itemCollection = $this->itemCollectionFactory->create()
@@ -113,7 +110,7 @@ class CustomerRma implements ResolverInterface
                 'status_from' => $entry->getStatusFrom() ? (string) $entry->getStatusFrom() : null,
                 'status_to'   => (string) $entry->getStatusTo(),
                 'comment'     => $entry->getComment() ? (string) $entry->getComment() : null,
-                'changed_by'  => (string) $entry->getChangedBy(),
+                'changed_by'  => (string) $entry->getCreatedBy(),
                 'created_at'  => (string) $entry->getCreatedAt(),
             ];
         }
@@ -128,7 +125,10 @@ class CustomerRma implements ResolverInterface
                 'file_name'     => (string) $att->getFileName(),
                 'file_size'     => (int) $att->getFileSize(),
                 'mime_type'     => (string) $att->getMimeType(),
-                'url'           => $baseMediaUrl . $att->getFilePath(),
+                'url'           => $this->urlBuilder->getUrl('rma/index/download', [
+                    'rma_id' => $rmaId,
+                    'attachment_id' => (int) $att->getAttachmentId(),
+                ]),
             ];
         }
 
@@ -147,7 +147,9 @@ class CustomerRma implements ResolverInterface
             'messages'           => $messages,
             'status_history'     => $history,
             'attachments'        => $attachments,
-            'shipping_label_url' => $rma->getShippingLabel() ? $baseMediaUrl . $rma->getShippingLabel() : null,
+            'shipping_label_url' => $rma->getShippingLabel()
+                ? $this->urlBuilder->getUrl('rma/index/download', ['rma_id' => $rmaId])
+                : null,
         ];
     }
 }

@@ -6,6 +6,8 @@ namespace Kkkonrad\Rma\Controller\Adminhtml\Rma;
 use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Kkkonrad\Rma\Api\Data\RmaItemInterfaceFactory;
 use Kkkonrad\Rma\Api\RmaManagementInterface;
+use Kkkonrad\Rma\Api\RmaRepositoryInterface;
+use Kkkonrad\Rma\Model\AttachmentUploader;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpPostActionInterface;
@@ -22,7 +24,11 @@ class SaveAdminRma extends Action implements HttpPostActionInterface
         private readonly JsonFactory $resultJsonFactory,
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly RmaManagementInterface $rmaManagement,
-        private readonly RmaItemInterfaceFactory $rmaItemFactory
+        private readonly RmaItemInterfaceFactory $rmaItemFactory,
+        private readonly AttachmentUploader $attachmentUploader,
+        private readonly RmaRepositoryInterface $rmaRepository,
+        private readonly \Psr\Log\LoggerInterface $logger,
+        private readonly \Magento\Framework\Event\ManagerInterface $eventManager
     ) {
         parent::__construct($context);
     }
@@ -31,12 +37,15 @@ class SaveAdminRma extends Action implements HttpPostActionInterface
     {
         $result = $this->resultJsonFactory->create();
 
+        $rma = null;
         try {
             $orderId        = (int) $this->getRequest()->getPost('order_id');
             $resolutionType = (string) $this->getRequest()->getPost('resolution_type');
             $comment        = (string) $this->getRequest()->getPost('comment');
             $itemsJson      = (string) $this->getRequest()->getPost('items', '[]');
             $itemsData      = json_decode($itemsJson, true) ?? [];
+            $requestFiles   = $this->getRequest()->getFiles('attachments', []);
+            $attachments    = $this->attachmentUploader->validate(is_array($requestFiles) ? $requestFiles : []);
 
             if (!$orderId || !$resolutionType || empty($itemsData)) {
                 throw new LocalizedException(__('Please fill in all required fields.'));
@@ -73,17 +82,21 @@ class SaveAdminRma extends Action implements HttpPostActionInterface
                 $resolutionType,
                 $items,
                 $comment,
-                true
+                true,
+                $attachments !== [],
+                false
             );
 
             // Auto-move to pending_review
-            $this->rmaManagement->changeStatus(
+            $rma = $this->rmaManagement->changeStatus(
                 $rma->getRmaId(),
                 RmaInterface::STATUS_PENDING_REVIEW,
                 (string)__('RMA initiated by store administrator.'),
                 'admin',
                 (int)$this->_auth->getUser()->getId()
             );
+            $this->attachmentUploader->save((int) $rma->getRmaId(), $attachments);
+            $this->eventManager->dispatch('kkkonrad_rma_created', ['rma' => $rma, 'items' => $items]);
 
             return $result->setData([
                 'success'      => true,
@@ -93,9 +106,27 @@ class SaveAdminRma extends Action implements HttpPostActionInterface
             ]);
 
         } catch (LocalizedException $e) {
+            $this->removeIncompleteRma($rma);
             return $result->setData(['success' => false, 'message' => $e->getMessage()]);
         } catch (\Exception $e) {
+            $this->removeIncompleteRma($rma);
+            $this->logger->error('Admin RMA creation failed.', ['exception' => $e]);
             return $result->setData(['success' => false, 'message' => (string) __('An error occurred. Please try again.')]);
+        }
+    }
+
+    private function removeIncompleteRma(?RmaInterface $rma): void
+    {
+        if ($rma === null || !$rma->getRmaId()) {
+            return;
+        }
+        try {
+            $this->rmaRepository->deleteById((int) $rma->getRmaId());
+        } catch (\Throwable $exception) {
+            $this->logger->critical('Failed to roll back incomplete admin RMA.', [
+                'rma_id' => $rma->getRmaId(),
+                'exception' => $exception,
+            ]);
         }
     }
 }

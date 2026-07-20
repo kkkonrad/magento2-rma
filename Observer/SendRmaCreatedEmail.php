@@ -18,7 +18,8 @@ class SendRmaCreatedEmail implements ObserverInterface
         private readonly StateInterface $inlineTranslation,
         private readonly StoreManagerInterface $storeManager,
         private readonly Config $config,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly \Kkkonrad\Rma\Model\RmaUrlProvider $rmaUrlProvider
     ) {
     }
 
@@ -43,6 +44,7 @@ class SendRmaCreatedEmail implements ObserverInterface
                 ->setTemplateVars([
                     'rma'   => $rma,
                     'store' => $this->storeManager->getStore((int) $rma->getStoreId()),
+                    'rma_url' => $this->rmaUrlProvider->getCustomerUrl($rma),
                 ])
                 ->setFromByScope($this->config->getEmailSender((int) $rma->getStoreId()))
                 ->addTo($rma->getCustomerEmail(), $rma->getCustomerName())

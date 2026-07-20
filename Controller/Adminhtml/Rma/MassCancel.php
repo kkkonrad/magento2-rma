@@ -36,7 +36,9 @@ class MassCancel extends Action implements HttpPostActionInterface
             try {
                 $this->rmaManagement->cancel(
                     (int) $rma->getRmaId(),
-                    (string) __('Cancelled by administrator.')
+                    (string) __('Cancelled by administrator.'),
+                    'admin',
+                    (int) $this->_auth->getUser()->getId()
                 );
                 $cancelled++;
             } catch (\Exception $e) {
