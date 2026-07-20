@@ -22,7 +22,9 @@ class CreateCustomerRma implements ResolverInterface
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly RmaManagementInterface $rmaManagement,
         private readonly RmaItemInterfaceFactory $rmaItemFactory,
-        private readonly CustomerRma $customerRmaResolver
+        private readonly CustomerRma $customerRmaResolver,
+        private readonly \Magento\Framework\Event\ManagerInterface $eventManager,
+        private readonly \Kkkonrad\Rma\Api\RmaRepositoryInterface $rmaRepository
     ) {
     }
 
@@ -56,6 +58,7 @@ class CreateCustomerRma implements ResolverInterface
         $customerId = (int) $customer->getId();
 
         // Validate order belongs to customer
+        $rma = null;
         try {
             $order = $this->orderRepository->get($orderId);
             if ((int) $order->getCustomerId() !== $customerId) {
@@ -92,17 +95,34 @@ class CreateCustomerRma implements ResolverInterface
 
         // Create RMA
         try {
-            $rma = $this->rmaManagement->createFromOrder($orderId, $customerId, $resolutionType, $items, $comment, $termsAccepted);
+            $rma = $this->rmaManagement->createFromOrder(
+                $orderId,
+                $customerId,
+                $resolutionType,
+                $items,
+                $comment,
+                $termsAccepted,
+                false,
+                false
+            );
 
             // Auto-advance to pending_review
-            $this->rmaManagement->changeStatus(
+            $rma = $this->rmaManagement->changeStatus(
                 $rma->getRmaId(),
                 RmaInterface::STATUS_PENDING_REVIEW,
                 null,
                 'customer',
                 $customerId
             );
+            $this->eventManager->dispatch('kkkonrad_rma_created', ['rma' => $rma, 'items' => $items]);
         } catch (\Exception $e) {
+            if ($rma !== null && $rma->getRmaId()) {
+                try {
+                    $this->rmaRepository->deleteById((int) $rma->getRmaId());
+                } catch (\Throwable) {
+                    // Preserve the original API failure.
+                }
+            }
             throw new GraphQlInputException(__($e->getMessage()));
         }
 

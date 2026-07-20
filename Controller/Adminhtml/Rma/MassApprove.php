@@ -14,7 +14,7 @@ use Psr\Log\LoggerInterface;
 
 class MassApprove extends Action implements HttpPostActionInterface
 {
-    public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_edit';
+    public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_approve';
 
     public function __construct(
         Context $context,

@@ -55,7 +55,7 @@ type RmaDetails @doc(description: "Full RMA detail including items and messages"
     messages: [RmaMessage]! @doc(description: "Thread messages")
     status_history: [RmaStatusHistory]! @doc(description: "Status change log")
     attachments: [RmaAttachment]! @doc(description: "Uploaded files")
-    shipping_label_url: String @doc(description: "Public download URL for return shipping label PDF uploaded by admin")
+    shipping_label_url: String @doc(description: "Authenticated download URL for return shipping label PDF uploaded by admin")
 }
 
 type RmaItem @doc(description: "Single item in an RMA request") {
@@ -92,7 +92,7 @@ type RmaAttachment @doc(description: "File attached to an RMA") {
     file_name: String! @doc(description: "Original file name")
     file_size: Int! @doc(description: "File size in bytes")
     mime_type: String! @doc(description: "MIME type")
-    url: String! @doc(description: "Public download URL")
+    url: String! @doc(description: "Authenticated download URL")
 }
 
 type RmaReasonOption @doc(description: "Return reason option") {

@@ -63,10 +63,15 @@ class Cancel implements HttpPostActionInterface
                 'message' => __('Your return request has been cancelled.')
             ]);
 
-        } catch (\Exception $e) {
+        } catch (LocalizedException $e) {
             return $result->setData([
                 'success' => false,
                 'message' => $e->getMessage()
+            ]);
+        } catch (\Exception) {
+            return $result->setData([
+                'success' => false,
+                'message' => __('An error occurred. Please try again.')
             ]);
         }
     }

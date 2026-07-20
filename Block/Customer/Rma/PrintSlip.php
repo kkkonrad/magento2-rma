@@ -35,6 +35,7 @@ class PrintSlip extends Template
         private readonly RmaAddressFactory $addressFactory,
         private readonly RmaAddressResource $addressResource,
         private readonly DictionaryLabelTranslator $dictionaryLabelTranslator,
+        private readonly \Kkkonrad\Rma\Model\GuestAccessToken $guestAccessToken,
         array $data = []
     ) {
         parent::__construct($context, $data);
@@ -47,10 +48,14 @@ class PrintSlip extends Template
             $rmaId      = (int) $this->getRequest()->getParam('rma_id');
             $customerId = (int) $this->customerSession->getCustomerId();
 
-            if ($rmaId && $customerId) {
+            if ($rmaId) {
                 try {
                     $rma = $this->rmaRepository->getById($rmaId);
-                    if ((int) $rma->getCustomerId() === $customerId) {
+                    $guestToken = (string) $this->getRequest()->getParam('hash');
+                    $isCustomerOwner = $customerId > 0 && (int) $rma->getCustomerId() === $customerId;
+                    $isAuthorizedGuest = (int) $rma->getCustomerId() === 0
+                        && $this->guestAccessToken->isValid($rma, $guestToken);
+                    if ($isCustomerOwner || $isAuthorizedGuest) {
                         $this->rma = $rma;
                     }
                 } catch (NoSuchEntityException) {

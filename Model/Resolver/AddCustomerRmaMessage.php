@@ -70,12 +70,14 @@ class AddCustomerRmaMessage implements ResolverInterface
         }
 
         return [
-            'message_id'  => (int) $createdMsg->getMessageId(),
-            'message'     => (string) $createdMsg->getMessage(),
-            'author_type' => (string) $createdMsg->getAuthorType(),
-            'author_name' => (string) $createdMsg->getAuthorName(),
-            'is_internal' => (bool) $createdMsg->getIsInternal(),
-            'created_at'  => (string) $createdMsg->getCreatedAt(),
+            'message' => [
+                'message_id'  => (int) $createdMsg->getMessageId(),
+                'message'     => (string) $createdMsg->getMessage(),
+                'author_type' => (string) $createdMsg->getAuthorType(),
+                'author_name' => (string) $createdMsg->getAuthorName(),
+                'is_internal' => (bool) $createdMsg->getIsInternal(),
+                'created_at'  => (string) $createdMsg->getCreatedAt(),
+            ],
         ];
     }
 }

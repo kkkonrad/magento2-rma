@@ -137,18 +137,18 @@ class AttachmentUploader
             return;
         }
 
-        $mediaDirectory = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
-        $uploadDirectory = 'kkkonrad/rma/' . $rmaId;
+        $storageDirectory = $this->filesystem->getDirectoryWrite(DirectoryList::VAR_DIR);
+        $uploadDirectory = 'rma/attachments/' . $rmaId;
         $connection = $this->attachmentResource->getConnection();
         $writtenFiles = [];
         $connection->beginTransaction();
 
         try {
-            $mediaDirectory->create($uploadDirectory);
+            $storageDirectory->create($uploadDirectory);
             foreach ($files as $file) {
                 $safeFileName = $this->random->getUniqueHash() . '.' . $file['extension'];
                 $relativePath = $uploadDirectory . '/' . $safeFileName;
-                $absolutePath = $mediaDirectory->getAbsolutePath($relativePath);
+                $absolutePath = $storageDirectory->getAbsolutePath($relativePath);
 
                 $this->fileDriver->copy($file['tmp_name'], $absolutePath);
                 $writtenFiles[] = $absolutePath;
@@ -170,6 +170,33 @@ class AttachmentUploader
                 }
             }
             throw $exception;
+        }
+    }
+
+    public function deleteForRma(int $rmaId, ?string $shippingLabel = null): void
+    {
+        $varDirectory = $this->filesystem->getDirectoryWrite(DirectoryList::VAR_DIR);
+        $attachmentDirectory = 'rma/attachments/' . $rmaId;
+        if ($varDirectory->isExist($attachmentDirectory)) {
+            $varDirectory->delete($attachmentDirectory);
+        }
+
+        if ($shippingLabel !== null && str_starts_with($shippingLabel, 'rma/labels/')) {
+            if ($varDirectory->isExist($shippingLabel)) {
+                $varDirectory->delete($shippingLabel);
+            }
+        }
+
+        $legacyMediaDirectory = $this->filesystem->getDirectoryWrite(DirectoryList::MEDIA);
+        $legacyDirectory = 'kkkonrad/rma/' . $rmaId;
+        if ($legacyMediaDirectory->isExist($legacyDirectory)) {
+            $legacyMediaDirectory->delete($legacyDirectory);
+        }
+        if ($shippingLabel !== null
+            && str_starts_with($shippingLabel, 'kkkonrad/rma/')
+            && $legacyMediaDirectory->isExist($shippingLabel)
+        ) {
+            $legacyMediaDirectory->delete($shippingLabel);
         }
     }
 }

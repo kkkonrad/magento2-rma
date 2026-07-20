@@ -34,7 +34,8 @@ class Save implements HttpPostActionInterface
         private readonly UrlInterface $url,
         private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaReason\CollectionFactory $reasonCollectionFactory,
         private readonly GuestAccessToken $guestAccessToken,
-        private readonly RmaRepositoryInterface $rmaRepository
+        private readonly RmaRepositoryInterface $rmaRepository,
+        private readonly \Magento\Framework\Event\ManagerInterface $eventManager
     ) {
     }
 
@@ -50,6 +51,7 @@ class Save implements HttpPostActionInterface
             return $result->setData(['success' => false, 'message' => __('Invalid security token. Please refresh and try again.')]);
         }
 
+        $rma = null;
         try {
             $orderId        = (int) $this->request->getPost('order_id');
             $resolutionType = (string) $this->request->getPost('resolution_type');
@@ -107,11 +109,20 @@ class Save implements HttpPostActionInterface
             }
 
             // Create RMA with customer_id = 0 (Guest)
-            $rma = $this->rmaManagement->createFromOrder($orderId, 0, $resolutionType, $items, $comment, (bool) $this->request->getPost('terms_accepted'));
+            $rma = $this->rmaManagement->createFromOrder(
+                $orderId,
+                0,
+                $resolutionType,
+                $items,
+                $comment,
+                (bool) $this->request->getPost('terms_accepted'),
+                $attachments !== [],
+                false
+            );
 
 
             // Auto-advance to pending_review
-            $this->rmaManagement->changeStatus(
+            $rma = $this->rmaManagement->changeStatus(
                 $rma->getRmaId(),
                 RmaInterface::STATUS_PENDING_REVIEW,
                 null,
@@ -128,6 +139,8 @@ class Save implements HttpPostActionInterface
             // Generate secure guest tracking link
             $hash = $this->guestAccessToken->issue($rma);
             $this->rmaRepository->save($rma);
+            $rma->setData('guest_access_token', $hash);
+            $this->eventManager->dispatch('kkkonrad_rma_created', ['rma' => $rma, 'items' => $items]);
 
             return $result->setData([
                 'success'      => true,
@@ -140,10 +153,27 @@ class Save implements HttpPostActionInterface
             ]);
 
         } catch (LocalizedException $e) {
+            $this->removeIncompleteRma($rma);
             return $result->setData(['success' => false, 'message' => $e->getMessage()]);
         } catch (\Exception $e) {
+            $this->removeIncompleteRma($rma);
             $this->logger->error('Guest RMA save error: ' . $e->getMessage(), ['exception' => $e]);
             return $result->setData(['success' => false, 'message' => (string) __('An error occurred. Please try again.')]);
+        }
+    }
+
+    private function removeIncompleteRma(?RmaInterface $rma): void
+    {
+        if ($rma === null || !$rma->getRmaId()) {
+            return;
+        }
+        try {
+            $this->rmaRepository->deleteById((int) $rma->getRmaId());
+        } catch (\Throwable $exception) {
+            $this->logger->critical('Failed to roll back incomplete guest RMA.', [
+                'rma_id' => $rma->getRmaId(),
+                'exception' => $exception,
+            ]);
         }
     }
 

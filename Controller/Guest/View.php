@@ -49,8 +49,8 @@ class View implements HttpGetActionInterface
 
             return $resultPage;
 
-        } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
+        } catch (\Exception) {
+            $this->messageManager->addErrorMessage(__('The return request could not be accessed.'));
             return $this->redirectFactory->create()->setPath('sales/guest/form');
         }
     }

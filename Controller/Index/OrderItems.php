@@ -26,7 +26,8 @@ class OrderItems implements HttpGetActionInterface
         private readonly \Kkkonrad\Rma\Model\Config $config,
         private readonly \Magento\Catalog\Api\ProductRepositoryInterface $productRepository,
         private readonly \Kkkonrad\Rma\Model\RmaPolicyFactory $policyFactory,
-        private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaPolicy $policyResource
+        private readonly \Kkkonrad\Rma\Model\ResourceModel\RmaPolicy $policyResource,
+        private readonly \Kkkonrad\Rma\Model\InvoiceDateProvider $invoiceDateProvider
     ) {
     }
 
@@ -61,9 +62,7 @@ class OrderItems implements HttpGetActionInterface
             }
 
             $excludedSkus = $this->config->getExcludedSkus((int) $order->getStoreId());
-            $invoicedAt = $order->getUpdatedAt() ?? $order->getCreatedAt();
-            $invoiceDate = new \DateTimeImmutable($invoicedAt);
-            $now         = new \DateTimeImmutable();
+            $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
             $items = [];
             foreach ($order->getItems() as $item) {
@@ -81,8 +80,12 @@ class OrderItems implements HttpGetActionInterface
 
                 // Calculate product specific return window
                 $returnWindowDays = $this->getReturnWindowDaysForProduct($item);
-                $deadline = $invoiceDate->modify('+' . $returnWindowDays . ' days');
-                $isExpired = $now > $deadline;
+                $invoiceDate = $this->invoiceDateProvider->getLatestInvoiceDate(
+                    $order,
+                    (int) $item->getItemId()
+                );
+                $isExpired = $invoiceDate === null
+                    || $now > $invoiceDate->modify('+' . $returnWindowDays . ' days');
 
                 $items[] = [
                     'item_id'       => (int) $item->getItemId(),
@@ -134,4 +137,3 @@ class OrderItems implements HttpGetActionInterface
         return $this->config->getReturnWindowDays($storeId);
     }
 }
-

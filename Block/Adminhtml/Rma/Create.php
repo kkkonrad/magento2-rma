@@ -69,4 +69,9 @@ class Create extends Template
     {
         return $this->getUrl('kkkonrad_rma/rma/searchOrder');
     }
+
+    public function getInitialOrderIncrementId(): string
+    {
+        return (string) $this->getRequest()->getParam('increment_id', '');
+    }
 }

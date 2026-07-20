@@ -3,121 +3,27 @@ declare(strict_types=1);
 
 namespace Kkkonrad\Rma\Controller\Adminhtml\Rma;
 
-use Kkkonrad\Rma\Api\Data\RmaItemInterfaceFactory;
-use Kkkonrad\Rma\Api\RmaManagementInterface;
-use Kkkonrad\Rma\Model\Config;
-use Kkkonrad\Rma\Model\ResourceModel\RmaReason\CollectionFactory as ReasonCollectionFactory;
-use Kkkonrad\Rma\Model\ResourceModel\RmaCondition\CollectionFactory as ConditionCollectionFactory;
-use Kkkonrad\Rma\Api\Data\RmaInterface;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\View\Result\PageFactory;
 
-class Create extends Action
+class Create extends Action implements HttpGetActionInterface
 {
     public const ADMIN_RESOURCE = 'Kkkonrad_Rma::rma_create';
 
     public function __construct(
         Context $context,
-        private readonly OrderRepositoryInterface $orderRepository,
-        private readonly RmaManagementInterface $rmaManagement,
-        private readonly RmaItemInterfaceFactory $rmaItemFactory,
-        private readonly ReasonCollectionFactory $reasonCollectionFactory,
-        private readonly ConditionCollectionFactory $conditionCollectionFactory,
-        private readonly Config $config,
-        private readonly \Magento\Framework\View\Result\PageFactory $resultPageFactory
+        private readonly PageFactory $resultPageFactory
     ) {
         parent::__construct($context);
     }
 
     public function execute(): \Magento\Framework\Controller\ResultInterface
     {
-        $resultRedirect = $this->resultRedirectFactory->create();
-        $orderId = (int)$this->getRequest()->getParam('order_id');
-
-        if (!$orderId) {
-            $resultPage = $this->resultPageFactory->create();
-            $resultPage->setActiveMenu('Kkkonrad_Rma::rma_menu');
-            $resultPage->getConfig()->getTitle()->prepend(__('Create Return Request (RMA)'));
-            return $resultPage;
-        }
-
-
-        try {
-            $order = $this->orderRepository->get($orderId);
-
-            // Fix R2: Use config-driven allowed statuses instead of hardcoded 'complete'
-            $allowedStatuses = $this->config->getAllowedOrderStatuses((int) $order->getStoreId());
-            if (!in_array($order->getStatus(), $allowedStatuses, true)) {
-                throw new LocalizedException(__('This order status does not allow a return request.'));
-            }
-
-            // Get first active reason and condition
-            $reasonCollection = $this->reasonCollectionFactory->create();
-            $reasonCollection->addFieldToFilter('is_active', 1)->setOrder('sort_order', 'ASC');
-            $reason = $reasonCollection->getFirstItem();
-            $reasonId = $reason ? (int)$reason->getId() : null;
-
-            $conditionCollection = $this->conditionCollectionFactory->create();
-            $conditionCollection->addFieldToFilter('is_active', 1)->setOrder('sort_order', 'ASC');
-            $condition = $conditionCollection->getFirstItem();
-            $conditionId = $condition ? (int)$condition->getId() : null;
-
-            // Prepare items
-            $rmaItems = [];
-            foreach ($order->getItems() as $orderItem) {
-                if ($orderItem->isDummy()) {
-                    continue;
-                }
-                
-                $qtyOrdered = (float)$orderItem->getQtyOrdered();
-                if ($qtyOrdered <= 0) {
-                    continue;
-                }
-
-                /** @var \Kkkonrad\Rma\Api\Data\RmaItemInterface $rmaItem */
-                $rmaItem = $this->rmaItemFactory->create();
-                $rmaItem->setOrderItemId((int)$orderItem->getItemId())
-                    ->setQty($qtyOrdered)
-                    ->setReasonId($reasonId)
-                    ->setConditionId($conditionId);
-                
-                $rmaItems[] = $rmaItem;
-            }
-
-            if (empty($rmaItems)) {
-                throw new LocalizedException(__('This order has no items that can be returned.'));
-            }
-
-            // Create RMA via management contract
-            $rma = $this->rmaManagement->createFromOrder(
-                $orderId,
-                (int)$order->getCustomerId(),
-                RmaInterface::RESOLUTION_REFUND,
-                $rmaItems,
-                (string) __('Created by admin from backend.'),
-                true
-            );
-
-            // Auto-move to pending_review for admin
-            $this->rmaManagement->changeStatus(
-                $rma->getRmaId(),
-                RmaInterface::STATUS_PENDING_REVIEW,
-                (string) __('RMA initiated by store administrator.'),
-                'admin',
-                (int)$this->_auth->getUser()->getId()
-            );
-
-            $this->messageManager->addSuccessMessage(__('RMA has been successfully initiated.'));
-            return $resultRedirect->setPath('*/*/edit', ['rma_id' => $rma->getRmaId()]);
-
-        } catch (LocalizedException $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
-        } catch (\Exception $e) {
-            $this->messageManager->addExceptionMessage($e, __('An error occurred while creating the RMA.'));
-        }
-
-        return $resultRedirect->setPath('kkkonrad_rma/rma/index');
+        $resultPage = $this->resultPageFactory->create();
+        $resultPage->setActiveMenu('Kkkonrad_Rma::rma_menu');
+        $resultPage->getConfig()->getTitle()->prepend(__('Create Return Request (RMA)'));
+        return $resultPage;
     }
 }

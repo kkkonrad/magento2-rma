@@ -8,6 +8,8 @@ use Kkkonrad\Rma\Api\RmaManagementInterface;
 use Kkkonrad\Rma\Model\Config;
 use Kkkonrad\Rma\Model\ResourceModel\Rma\CollectionFactory;
 use Psr\Log\LoggerInterface;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Auto-cancel RMAs that have been waiting for customer response too long.
@@ -18,38 +20,44 @@ class AutoCancelExpiredRma
         private readonly CollectionFactory $collectionFactory,
         private readonly RmaManagementInterface $rmaManagement,
         private readonly Config $config,
-        private readonly LoggerInterface $logger
+        private readonly LoggerInterface $logger,
+        private readonly StoreManagerInterface $storeManager,
+        private readonly DateTime $dateTime
     ) {
     }
 
     public function execute(): void
     {
-        $autoCancelDays = $this->config->getAutoCancelDays();
-
-        if ($autoCancelDays <= 0) {
-            return;
-        }
-
-        $cutoffDate = date('Y-m-d H:i:s', strtotime('-' . $autoCancelDays . ' days'));
-
-        // Find RMAs in pending_review status older than cutoff
-        $collection = $this->collectionFactory->create();
-        $collection->addFieldToFilter('status', ['eq' => RmaInterface::STATUS_PENDING_REVIEW])
-            ->addFieldToFilter('updated_at', ['lteq' => $cutoffDate]);
-
         $cancelled = 0;
         $errors    = 0;
 
-        foreach ($collection as $rma) {
-            try {
-                $this->rmaManagement->cancel(
-                    (int) $rma->getRmaId(),
-                    (string) __('Automatically cancelled due to no customer response within %1 days.', $autoCancelDays)
-                );
-                $cancelled++;
-            } catch (\Exception $e) {
-                $errors++;
-                $this->logger->error('Failed to auto-cancel RMA ' . $rma->getRmaId() . ': ' . $e->getMessage());
+        foreach ($this->storeManager->getStores() as $store) {
+            $storeId = (int) $store->getId();
+            $autoCancelDays = $this->config->getAutoCancelDays($storeId);
+            if ($autoCancelDays <= 0) {
+                continue;
+            }
+
+            $cutoffDate = $this->dateTime->gmtDate(
+                'Y-m-d H:i:s',
+                $this->dateTime->gmtTimestamp() - ($autoCancelDays * 86400)
+            );
+            $collection = $this->collectionFactory->create();
+            $collection->addFieldToFilter('store_id', ['eq' => $storeId])
+                ->addFieldToFilter('status', ['eq' => RmaInterface::STATUS_PENDING_REVIEW])
+                ->addFieldToFilter('updated_at', ['lteq' => $cutoffDate]);
+
+            foreach ($collection as $rma) {
+                try {
+                    $this->rmaManagement->cancel(
+                        (int) $rma->getRmaId(),
+                        (string) __('Automatically cancelled due to no customer response within %1 days.', $autoCancelDays)
+                    );
+                    $cancelled++;
+                } catch (\Exception $e) {
+                    $errors++;
+                    $this->logger->error('Failed to auto-cancel RMA ' . $rma->getRmaId() . ': ' . $e->getMessage());
+                }
             }
         }
 

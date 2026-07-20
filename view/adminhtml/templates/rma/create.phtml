@@ -24,6 +24,7 @@ $resolutions = $block->getResolutionTypes();
                 <div class="admin__field-control">
                     <input type="text"
                            id="search_increment_id"
+                           value="<?= $escaper->escapeHtmlAttr($block->getInitialOrderIncrementId()) ?>"
                            placeholder="e.g. 000000001"
                            class="admin__control-text"
                            style="width: 250px; margin-right: 10px;"/>
@@ -98,6 +99,15 @@ $resolutions = $block->getResolutionTypes();
                 </div>
             </div>
 
+            <div class="admin__field" style="margin-top: 15px;">
+                <label class="admin__field-label" for="attachments">
+                    <span><?= $escaper->escapeHtml(__('Attachments')) ?></span>
+                </label>
+                <div class="admin__field-control">
+                    <input type="file" id="attachments" multiple class="admin__control-file"/>
+                </div>
+            </div>
+
             <div class="actions-line" style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #ddd;">
                 <button type="button" id="submit-rma-btn" class="action-default primary">
                     <span><?= $escaper->escapeHtml(__('Submit Return Request')) ?></span>
@@ -148,6 +158,10 @@ require(['jquery'], function ($) {
             }
         });
     });
+
+    if ($('#search_increment_id').val().trim()) {
+        $('#search-order-btn').trigger('click');
+    }
 
     function renderOrderData(data) {
         $('#info-customer-name').text(data.customer_name);
@@ -287,16 +301,22 @@ require(['jquery'], function ($) {
         $('#submit-error').hide();
         $('#submit-rma-btn').prop('disabled', true);
 
+        var formData = new FormData();
+        formData.append('form_key', window.FORM_KEY);
+        formData.append('order_id', orderData.order_id);
+        formData.append('resolution_type', resolution);
+        formData.append('comment', $('#comment').val());
+        formData.append('items', JSON.stringify(selectedItems));
+        Array.from($('#attachments')[0].files || []).forEach(function (file, index) {
+            formData.append('attachments[' + index + ']', file, file.name);
+        });
+
         $.ajax({
             url: saveUrl,
             type: 'POST',
-            data: {
-                form_key: window.FORM_KEY,
-                order_id: orderData.order_id,
-                resolution_type: resolution,
-                comment: $('#comment').val(),
-                items: JSON.stringify(selectedItems)
-            },
+            data: formData,
+            processData: false,
+            contentType: false,
             dataType: 'json',
             success: function (res) {
                 $('#submit-loading').hide();

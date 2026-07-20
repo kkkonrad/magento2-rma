@@ -19,10 +19,18 @@ class CustomerRmaManagementTest extends TestCase
         $context->method('getUserId')->willReturn(42);
         $repository = $this->createMock(RmaRepositoryInterface::class);
         $management = $this->createMock(RmaManagementInterface::class);
+        $events = $this->createMock(\Magento\Framework\Event\ManagerInterface::class);
+        $rma = $this->createMock(\Kkkonrad\Rma\Api\Data\RmaInterface::class);
+        $rma->method('getRmaId')->willReturn(7);
         $management->expects($this->once())->method('createFromOrder')
-            ->with(100, 42, 'refund', [], null, false);
+            ->with(100, 42, 'refund', [], null, false, false, false)
+            ->willReturn($rma);
+        $management->expects($this->once())->method('changeStatus')
+            ->with(7, 'pending_review', null, 'customer', 42)
+            ->willReturn($rma);
 
-        (new CustomerRmaManagement($context, $repository, $management))
+        $events->expects($this->once())->method('dispatch')->with('kkkonrad_rma_created');
+        (new CustomerRmaManagement($context, $repository, $management, $events))
             ->createFromOrder(100, 'refund', []);
     }
 
@@ -37,7 +45,12 @@ class CustomerRmaManagementTest extends TestCase
         $management->expects($this->once())->method('addMessage')
             ->with(5, 'Hello', 'customer', 42, null, false);
 
-        (new CustomerRmaManagement($context, $repository, $management))->addMessage(5, 'Hello');
+        (new CustomerRmaManagement(
+            $context,
+            $repository,
+            $management,
+            $this->createMock(\Magento\Framework\Event\ManagerInterface::class)
+        ))->addMessage(5, 'Hello');
     }
 
     public function testGuestContextIsRejected(): void
@@ -50,7 +63,8 @@ class CustomerRmaManagementTest extends TestCase
         (new CustomerRmaManagement(
             $context,
             $this->createMock(RmaRepositoryInterface::class),
-            $this->createMock(RmaManagementInterface::class)
+            $this->createMock(RmaManagementInterface::class),
+            $this->createMock(\Magento\Framework\Event\ManagerInterface::class)
         ))->createFromOrder(100, 'refund', []);
     }
 }

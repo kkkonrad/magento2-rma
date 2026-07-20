@@ -171,6 +171,25 @@ class View extends Template
         return $baseMediaUrl . 'kkkonrad/rma/' . ltrim($filePath, '/');
     }
 
+    public function getAttachmentUrl(int $attachmentId): string
+    {
+        $rma = $this->getRma();
+        return $this->getUrl('rma/guest/download', [
+            'rma_id' => $rma ? $rma->getRmaId() : 0,
+            'attachment_id' => $attachmentId,
+            'hash' => $this->getRmaHash(),
+        ]);
+    }
+
+    public function getShippingLabelUrl(): string
+    {
+        $rma = $this->getRma();
+        return $this->getUrl('rma/guest/download', [
+            'rma_id' => $rma ? $rma->getRmaId() : 0,
+            'hash' => $this->getRmaHash(),
+        ]);
+    }
+
     public function getRmaHash(): string
     {
         $rma = $this->getRma();
